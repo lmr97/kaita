@@ -1,0 +1,46 @@
+# ports need to be explicitly bound, at least with a rootless Docker run
+# To reload this configuration, make sure to use 
+#   
+#   docker compose down 
+#   docker compose up -d
+#
+# not
+#
+#   docker compose restart
+#
+# Restarting the container, even with a changed Compose file, 
+# does NOT apply new port settings.`
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    #user: 957:1000    # jellyfin:martin
+    ports:
+      - "8096:8096"
+    environment:
+      - TZ=America/Denver
+    volumes:
+      - /home/martin/.config/jellyfin:/config
+      - /home/martin/.cache/jellyfin:/cache
+      - type: bind
+        source: /media/Music
+        target: /media/Music
+      - type: bind
+        source: /media/Movies
+        target: /media/Movies
+        read_only: true
+      # technically redundant, but may help the random crashes
+      - type: bind
+        source: /home/martin/.config/jellyfin
+        target: /var/lib/jellyfin
+      # Optional - extra fonts to be used during transcoding with subtitle burn-in
+      #- type: bind
+      #  source: /path/to/fonts
+      #  target: /usr/local/share/fonts/custom
+      #  read_only: true
+    #restart: 'always'
+    # Optional - alternative address used for autodiscovery
+    #  - JELLYFIN_PublishedServerUrl=http://example.com
+    # Optional - may be necessary for docker healthcheck to pass if running in host network mode
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'

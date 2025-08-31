@@ -1,0 +1,3 @@
+[submodule "archie-server"]
+	path = archie-server
+	url = https://github.com/lmr97/archie-server
