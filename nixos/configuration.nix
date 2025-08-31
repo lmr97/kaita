@@ -1,0 +1,193 @@
+# Edit this configuration file to define what should be installed on
+# your system. Help is available in the configuration.nix(5) man page, on
+# https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
+
+{ config, lib, pkgs, ... }:
+
+let 
+#  netId = {
+#    method = "manual";
+#    address = "192.168.0.112/24";
+#    gateway = "192.168.0.1";
+#    dns = "8.8.8.8";
+#};
+  home-manager = builtins.fetchTarball https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz;
+in  
+{
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+      ./hosting-configuration.nix
+      (import "${home-manager}/nixos")
+    ];
+
+  # Use the systemd-boot EFI boot loader.
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+
+    # Use latest kernel.
+    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPatches = [
+      {
+        name = "Rust Support";
+        patch = null;
+        features = { 
+          rust = true; 
+        };
+      }
+    ];
+    supportedFilesystems = [ "nfs" ];
+  };
+
+  
+
+  networking = {
+    hostName = "kopaka";
+    interfaces.wlp2s0.ipv4.addresses = [
+      {
+        address = "192.168.0.112";
+        prefixLength = 24;
+      }
+    ];
+    wireless = {
+      enable = true;
+      secretsFile = "/run/secrets/wireless.conf";
+      networks.Alpha6.pskRaw = "ext:psk_home";
+    };
+    nameservers = [ "192.168.0.1" "8.8.8.8" ];
+    defaultGateway = "192.168.0.1";
+    firewall = {
+      enable = true;
+      allowedTCPPorts = [ 
+        22    # SSH
+        443   # HTTPS
+        1918  # SSH (via router redirect)
+        2049  # NFS
+      ];
+    };
+    hosts = {
+      "192.168.0.111" = [ "archie" ];
+    };
+    # keeping `enable` on its own line so I can bring in the other
+    # commented-out options easier
+    networkmanager = {
+      enable = false;
+    };
+ #     ensureProfiles.profiles = {
+ #       Alpha6 = {
+ #         connection = {
+ #           type = "wifi";
+ #           id = "Alpha6";
+ #           interface-name = "wlp2s0";
+ #           autoconnect = true;
+ #         };
+ #         ipv4 = (netId); 
+ #       };
+ #     };
+ #   };
+  };
+
+
+  
+  # SSH configuration
+  services.openssh = {
+    enable = true;
+    ports  = [ 22 ];
+    settings = {
+      AllowUsers = null;
+      UseDns = true;
+      X11Forwarding = false;
+      PermitRootLogin = "prohibit-password";
+    };
+  };
+
+  # Set your time zone.
+  time.timeZone = "America/Denver";
+
+  # Configure network proxy if necessary
+  # networking.proxy.default = "http://user:password@proxy:port/";
+  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_US.UTF-8";
+  console = {
+    font = "Lat2-Terminus16";
+    keyMap = "us";
+    # useXkbConfig = true; # use xkb.options in tty.
+  };
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.martin = {
+    isNormalUser = true;
+    extraGroups = [ 
+      "martin"
+      "wheel" 
+      "sudo" 
+      "docker" 
+      "networkmanager" 
+      "nogroup"
+    ];
+  };
+  
+  home-manager.users.martin = {pkgs, ...}: {
+    programs = {
+      git = {
+        enable = true;
+        userName = "lmr97";
+        userEmail = "lmreid1997@gmail.com";
+        extraConfig = {
+          init.defaultBranch = "main";
+        };
+      };
+    };
+    home.stateVersion = "25.05"; 
+  };
+
+  # List packages installed in system profile.
+  # You can use https://search.nixos.org/ to find more packages (and options).
+  environment.systemPackages = with pkgs; [
+    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    wget
+    curl
+    htop
+  ];
+
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  # programs.mtr.enable = true;
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
+
+  # List services that you want to enable:
+
+  # Copy the NixOS configuration file and link it from the resulting system
+  # (/run/current-system/configuration.nix). This is useful in case you
+  # accidentally delete configuration.nix.
+  system.copySystemConfiguration = true;
+
+  # This option defines the first version of NixOS you have installed on this particular machine,
+  # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
+  #
+  # Most users should NEVER change this value after the initial install, for any reason,
+  # even if you've upgraded your system to a new NixOS release.
+  #
+  # This value does NOT affect the Nixpkgs version your packages and OS are pulled from,
+  # so changing it will NOT upgrade your system - see https://nixos.org/manual/nixos/stable/#sec-upgrading for how
+  # to actually do that.
+  #
+  # This value being lower than the current NixOS release does NOT mean your system is
+  # out of date, out of support, or vulnerable.
+  #
+  # Do NOT change this value unless you have manually inspected all the changes it would make to your configuration,
+  # and migrated your data accordingly.
+  #
+  # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
+  system.stateVersion = "25.05"; # Did you read the comment?
+
+}
+
