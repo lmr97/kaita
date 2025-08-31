@@ -142,6 +142,10 @@ in
           init.defaultBranch = "main";
         };
       };
+      bash = {
+        enable = true;
+        profileExtra = "neofetch" ;
+      };
     };
     home.stateVersion = "25.05"; 
   };
@@ -153,6 +157,7 @@ in
     wget
     curl
     htop
+    neofetch
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
