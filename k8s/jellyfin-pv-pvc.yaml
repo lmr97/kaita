@@ -1,0 +1,35 @@
+# This PV contains all the data needed for a Jellyfin instance,
+# including configuration and metadata. 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-data-vol
+  namespace: jellyfin
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 180Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  nfs:
+    path: /jellyfin
+    server: archie
+  mountOptions:
+    - hard
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-data-pvc
+  namespace: jellyfin
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 180Gi
