@@ -4,21 +4,21 @@
 
 { config, lib, pkgs, ... }:
 
-let 
+#let 
 #  netId = {
 #    method = "manual";
 #    address = "192.168.0.112/24";
 #    gateway = "192.168.0.1";
 #    dns = "8.8.8.8";
 #};
-  home-manager = builtins.fetchTarball https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz;
-in  
+#  home-manager = builtins.fetchTarball https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz;
+#in  
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./hosting-configuration.nix
-      (import "${home-manager}/nixos")
+      #./hosting-configuration.nix
+      #(import "${home-manager}/nixos")
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -46,26 +46,29 @@ in
 
   networking = {
     hostName = "kopaka";
-    interfaces.wlp2s0.ipv4.addresses = [
-      {
-        address = "192.168.0.112";
-        prefixLength = 24;
-      }
-    ];
+    interfaces.wlp2s0 = {
+      ipv4.addresses = [
+        {
+          address = "192.168.0.112";
+          prefixLength = 24;
+        }
+      ];
+    };
     wireless = {
       enable = true;
-      secretsFile = "/run/secrets/wireless.conf";
+      secretsFile = "/etc/wpa_supplicant/wireless.conf";
       networks.Alpha6.pskRaw = "ext:psk_home";
     };
-    nameservers = [ "192.168.0.1" "8.8.8.8" ];
+    nameservers = [ "192.168.0.1" "1.1.1.1" "8.8.8.8" ];
     defaultGateway = "192.168.0.1";
     firewall = {
-      enable = true;
+      enable = false;
       allowedTCPPorts = [ 
         22    # SSH
         443   # HTTPS
         1918  # SSH (via router redirect)
         2049  # NFS
+	6443  # Kubernetes
       ];
     };
     hosts = {
@@ -132,33 +135,29 @@ in
     ];
   };
   
-  home-manager.users.martin = {pkgs, ...}: {
-    programs = {
-      git = {
-        enable = true;
-        userName = "lmr97";
-        userEmail = "lmreid1997@gmail.com";
-        extraConfig = {
-          init.defaultBranch = "main";
-        };
-      };
-      bash = {
-        enable = true;
-        profileExtra = "neofetch" ;
+  programs = {
+    bash.interactiveShellInit = "/run/current-system/sw/bin/neofetch";
+    git = {
+      enable = true;
+      config = {
+	user = {
+	  name = "lmr97";
+          email = "lmreid1997@gmail.com";
+	};
+        init.defaultBranch = "main";
       };
     };
-    home.stateVersion = "25.05"; 
   };
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
-  environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    wget
-    curl
-    htop
-    neofetch
-  ];
+  #environment.systemPackages = with pkgs; [
+  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+  #  wget
+  #  curl
+  #  htop
+  #  neofetch
+  #];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
