@@ -2,17 +2,12 @@
 
 let
   kubeMasterIP = "192.168.0.111";
-  kubeMasterHostname = "archie";
-  kubeMasterAPIServerPort = 6443;
 in
 {
   config = lib.mkMerge [
     {
       environment.systemPackages = with pkgs; [
 	docker-compose
-	kompose
-	kubectl
-	
       ];
    
       virtualisation.docker = {
@@ -23,32 +18,27 @@ in
         };
       };
 
-      services.nfs.settings.mountd.manage-gids = true;
-    
-
-      services.kubernetes = let 
-	api = "https://${kubeMasterHostname}:${toString kubeMasterAPIServerPort}";
-      in 
-      {
-	enable = true;
-      	roles = [ "node" ];
-	masterAddress = kubeMasterHostname;
-	easyCerts = true;
-
-	kubelet.kubeconfig.server = api;
-	apiserverAddress = api;
-	addons.dns.enable = true;
+      services.k3s = {
+    	enable = true;
+    	role = "agent";   
+	# temp token, invalid by the time you're seeing this 
+	token = "K10de70da372eaf0b629b3b58284c49a5039b4fc7fa049c827be99f38612cd02561::9nix64.z3y3zriq7dq3apyh";
+   	serverAddr = "https://${kubeMasterIP}:6443";
       };
  
-      fileSystems."/nfs/media" = {
-        device = "archie:/media";
-        fsType = "nfs";
-        options = [ 
-	  "x-systemd.automount" 
-	  "noauto" 
-	  "noatime"
-	];
+      services.nfs.settings.mountd.manage-gids = true;
+      
+      fileSystems = {
+        "/nfs/jellyfin" = {
+          device = "archie:/jellyfin";
+          fsType = "nfs";
+          options = [ 
+            "x-systemd.automount" 
+            "noauto" 
+            "noatime"
+          ];
+        };
       };
-    }
-  ];
+    }  
+ ]; 
 }

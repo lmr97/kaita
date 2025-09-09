@@ -17,7 +17,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      #./hosting-configuration.nix
+      ./hosting-configuration.nix
       #(import "${home-manager}/nixos")
     ];
 
@@ -59,16 +59,19 @@
       secretsFile = "/etc/wpa_supplicant/wireless.conf";
       networks.Alpha6.pskRaw = "ext:psk_home";
     };
-    nameservers = [ "192.168.0.1" "1.1.1.1" "8.8.8.8" ];
+    nameservers = [ "192.168.0.1" ];
     defaultGateway = "192.168.0.1";
     firewall = {
-      enable = false;
+      enable = true;
       allowedTCPPorts = [ 
         22    # SSH
         443   # HTTPS
         1918  # SSH (via router redirect)
         2049  # NFS
-	6443  # Kubernetes
+	6443  # Kubernetes / K3s
+      ];
+      allowedUDPPorts = [ 
+	8472  # Flannel
       ];
     };
     hosts = {
@@ -136,7 +139,6 @@
   };
   
   programs = {
-    bash.interactiveShellInit = "/run/current-system/sw/bin/neofetch";
     git = {
       enable = true;
       config = {
@@ -151,13 +153,14 @@
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
-  #environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
-  #  curl
-  #  htop
-  #  neofetch
-  #];
+  environment.systemPackages = with pkgs; [
+    vim  # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    wget
+    curl
+    htop
+    neofetch
+    jq
+  ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
