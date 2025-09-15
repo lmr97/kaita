@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archie-web-stateless 
+  namespace: archie
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: web-server-and-app
+    spec:
+      containers:
+      - name: archie-svr
+        image: lmr97/archie-svr:latest
+      - name: lb-app
+        image: lmr97/lb-web-app:latest
+      - name: archie-db 
+        image: mysql:9.2
+        volumeMounts:
+        - name: db-vol
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: db-vol
+        persistentVolumeClaim:
+          claimName: archie-db-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: archie-web-svr
+  namespace: archie 
+spec:
+  selector:
+    app: web-server-and-app
+  ports:
+  - protocol: TCP
+    port: 4949
+    targetPort: 4949
+

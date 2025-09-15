@@ -1,0 +1,27 @@
+# found here:
+# https://longhorn.io/docs/1.9.1/nodes-and-volumes/volumes/create-volumes/
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: longhorn
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+parameters:
+  numberOfReplicas: "2"       # change this as cluster grows
+  staleReplicaTimeout: "2880" # 48 hours in minutes
+  fromBackup: ""
+  fsType: "ext4"
+  backupTargetName: "default"
+#  mkfsParams: "-I 256 -b 4096 -O ^metadata_csum,^64bit"
+#  diskSelector: "ssd,fast"
+#  nodeSelector: "storage,fast"
+#  recurringJobSelector: '[
+#   {
+#     "name":"snap",
+#     "isGroup":true,
+#   },
+#   {
+#     "name":"backup",
+#     "isGroup":false,
+#   }
+#  ]'

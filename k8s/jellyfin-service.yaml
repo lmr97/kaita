@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+      - name: jellyfin
+        # tag 2025090805 (latest at time of writing)
+        # stack-overflows on library scan
+        image: jellyfin/jellyfin:2025062305
+        volumeMounts:
+        - name: jf-config
+          mountPath: /config
+        - name: jf-media
+          mountPath: /media
+        - name: cache-volume
+          mountPath: /cache
+        restartPolicy: Never
+        ports:
+        - containerPort: 8096
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-pvc
+      - name: jf-config
+        persistentVolumeClaim:
+          claimName: jellyfin-cfg-pvc
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 150Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  namespace: archie 
+spec:
+  selector:
+    app: jellyfin
+  ports:
+  - protocol: TCP
+    port: 8096 
+    targetPort: 8096
+

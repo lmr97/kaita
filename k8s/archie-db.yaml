@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: archie-db-vol
+  namespace: archie
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  nfs:
+    path: /archie/db
+    server: archie
+  mountOptions:
+    - hard
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archie-db-pvc
+  namespace: archie
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: archie-web-db
+  namespace: archie
+spec:
+  replicas: 1
+  minReadySeconds: 60
+  template:
+    metadata:
+      labels:
+        app: archie-db 
+    spec:
+      containers:
+        - name: archie-db 
+          image: mysql:9.2
+          env:
+            - name: MYSQL_ONETIME_PASSWORD
+              value: false
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: false
+            - name: MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?}
+            - name: MYSQL_USER
+              value: server1
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD:?}
+
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: db-vol
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: db-vol
+          persistentVolumeClaim:
+            claimName: archie-db-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: archie-web-db
+  namespace: archie 
+spec:
+  selector:
+    app: archie-db
+  clusterIP: None
+  ports:
+  - protocol: TCP
+    port: 3306
+

@@ -1,35 +1,90 @@
 # This PV contains all the data needed for a Jellyfin instance,
 # including configuration and metadata. 
+
+# Volume for the media being served
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: jellyfin-data-vol
-  namespace: jellyfin
+  name: jellyfin-media-vol
+  namespace: archie
 spec:
-  storageClassName: ""
+  storageClassName: local-storage
   capacity:
     storage: 180Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   volumeMode: Filesystem
-  nfs:
-    path: /jellyfin
-    server: archie
-  mountOptions:
-    - hard
+  local:
+    path: /media
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+              - archie
+
 
 ---
 
+# Volume for the configuration files and metadata
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-cfg-vol
+  namespace: archie
+spec:
+  storageClassName: local-storage
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  local:
+    path: /home/martin/.config/jellyfin
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+              - archie
+
+
+---
+
+# PVC for the media
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: jellyfin-data-pvc
-  namespace: jellyfin
+  name: jellyfin-media-pvc
+  namespace: archie
 spec:
-  storageClassName: ""
+  storageClassName: local-storage
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 180Gi
+
+
+---
+
+# PVC for the config/metadata volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cfg-pvc
+  namespace: archie
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+
