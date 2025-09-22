@@ -16,8 +16,8 @@
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ./hosting-configuration.nix
+      /etc/nixos/hardware-configuration.nix
+      /home/martin/kaita/nixos/hosting-configuration.nix
       #(import "${home-manager}/nixos")
     ];
 
