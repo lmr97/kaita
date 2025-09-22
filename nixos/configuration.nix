@@ -69,6 +69,9 @@
         1918  # SSH (via router redirect)
         2049  # NFS
 	6443  # Kubernetes / K3s
+	2379  # for Flannel
+	2380  # for k8s/Flannel
+	8472  # for k8s/Flannel
       ];
       allowedUDPPorts = [ 
 	8472  # Flannel
