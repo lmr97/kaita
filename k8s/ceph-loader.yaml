@@ -1,0 +1,35 @@
+# this exists solely to load data into the CephFS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ceph-loader 
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: ceph-loader 
+  template:
+    metadata:
+      labels:
+        app: ceph-loader
+    spec:
+      containers:
+      - name: loader 
+        image: alpine
+        volumeMounts:
+        - name: jf-fs
+          mountPath: /mnt
+      volumes:
+      - name: jf-fs
+        persistentVolumeClaim:
+          claimName: jellyfin-ceph-pvc
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - archie

@@ -9,6 +9,13 @@ spec:
   tls:
     secretName: archie-tls
   routes:
+  #- kind: Rule
+  #  match: Host(`archie.zapto.org`) && PathPrefix(`/jf-ceph`)
+  #  services:
+  #  - kind: Service 
+  #    name: jellyfin-ceph
+  #    namespace: archie
+  #    port: 8097
   - kind: Rule
     match: Host(`archie.zapto.org`) && PathPrefix(`/jellyfin`)
     services:
@@ -17,9 +24,9 @@ spec:
       namespace: archie
       port: 8096
   - kind: Rule
-    match: Host(`archie.zapto.org`) && PathPrefix(`/`)
+    match: Host(`archie.zapto.org`) #&& PathPrefix(`/`)
     services:
     - kind: Service
-      name: archie-patch
+      name: archie-svr
       namespace: archie
       port: 4949

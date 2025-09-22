@@ -1,39 +1,3 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: archie-db-vol
-  namespace: archie
-spec:
-  storageClassName: ""
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  volumeMode: Filesystem
-  nfs:
-    path: /archie/db
-    server: archie
-  mountOptions:
-    - hard
-
----
-
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: archie-db-pvc
-  namespace: archie
-spec:
-  storageClassName: ""
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-
----
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -42,6 +6,9 @@ metadata:
 spec:
   replicas: 1
   minReadySeconds: 60
+  selector:
+    matchLabels:
+      app: archie-db
   template:
     metadata:
       labels:
@@ -52,14 +19,22 @@ spec:
           image: mysql:9.2
           env:
             - name: MYSQL_ONETIME_PASSWORD
-              value: false
-            - name: MYSQL_ALLOW_EMPTY_PASSWORD
-              value: false
-            - name: MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?}
+              value: "yes"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-root-login
+                  key: pass
             - name: MYSQL_USER
-              value: server1
-        MYSQL_PASSWORD: ${MYSQL_PASSWORD:?}
-
+              valueFrom: 
+                secretKeyRef:
+                  name: db-login
+                  key: db-user
+            - name: MYSQL_PASSWORD
+              valueFrom: 
+                secretKeyRef:
+                  name: db-login  # secret name
+                  key: db-pass    
           ports:
             - containerPort: 3306
           volumeMounts:
@@ -67,15 +42,16 @@ spec:
               mountPath: /var/lib/mysql
       volumes:
         - name: db-vol
-          persistentVolumeClaim:
-            claimName: archie-db-pvc
-
+          #persistentVolumeClaim:
+          #  claimName: archie-db-pvc
+          emptyDir:
+            sizeLimit: 1Gi
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: archie-web-db
+  name: svr-db
   namespace: archie 
 spec:
   selector:

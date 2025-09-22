@@ -1,40 +1,74 @@
+# I am keeping the main server and web app components in their
+# own deployment apart from the database, since the DB will need to 
+# be scaled differently. These services, by themselves, are 
+# stateless; any statefulness they present with is because of the 
+# database exclusively.
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: archie-web-stateless 
+  name: archie-main-svr 
   namespace: archie
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: web-svr-stateless
   template:
     metadata:
       labels:
-        app: web-server-and-app
+        app: web-svr-stateless
     spec:
+      dnsPolicy: ClusterFirst
       containers:
+      # main server
       - name: archie-svr
         image: lmr97/archie-svr:latest
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        command: [ "/home/server/custom-backend/target/release/archie-server", "--no-tls"]
+        env:
+          - name: PRE_LOG
+            value: "1"
+          - name: SERVER_LOG
+            value: ""         # override file option; send to stdout
+          - name: MYSQL_USER
+            valueFrom: 
+              secretKeyRef:
+                name: db-login
+                key: db-user
+          - name: MYSQL_PASSWORD
+            valueFrom: 
+              secretKeyRef:
+                name: db-login  # secret name
+                key: db-pass
+          - name: RUST_LOG
+            value: "custom_backend=info,custom_backend=debug"
+          - name: DB_URL
+            value: "mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@svr-db.archie.svc.cluster.local:3306/archie"
+          - name: PY_CONT_SOCK
+            value: "localhost:3575"  # intra-pod
+        ports:
+          - containerPort: 4949
+
+      # Letterboxd web app
       - name: lb-app
         image: lmr97/lb-web-app:latest
-      - name: archie-db 
-        image: mysql:9.2
-        volumeMounts:
-        - name: db-vol
-          mountPath: /var/lib/mysql
-      volumes:
-      - name: db-vol
-        persistentVolumeClaim:
-          claimName: archie-db-pvc
+        env:
+          - name: PY_DEBUG
+            value: "1"
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: archie-web-svr
+  name: archie-svr
   namespace: archie 
 spec:
   selector:
-    app: web-server-and-app
+    app: web-svr-stateless 
   ports:
   - protocol: TCP
     port: 4949

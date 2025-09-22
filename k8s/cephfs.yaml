@@ -1,14 +1,14 @@
 apiVersion: ceph.rook.io/v1
 kind: CephFilesystem
 metadata:
-  name: myfs
+  name: main-ceph-fs
   namespace: rook-ceph
 spec:
   metadataPool:
     replicated:
       size: 3
   dataPools:
-    - name: replicated
+    - name: main-ceph-fs-replicated
       replicated:
         size: 3
   preserveFilesystemOnDelete: true

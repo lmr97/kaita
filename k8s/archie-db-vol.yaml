@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: archie-db-vol
+  namespace: archie
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  emptyDir:
+    sizeLimit: 1Gi
+  #nfs:
+  #  path: /archie/db
+  #  server: archie
+  #mountOptions:
+  #  - hard
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archie-db-pvc
+  namespace: archie
+spec:
+  storageClassName: "" #local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-ceph
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: jellyfin-ceph
+  template:
+    metadata:
+      labels:
+        app: jellyfin-ceph
+    spec:
+      containers:
+      - name: jellyfin
+        # tag 2025090805 (latest at time of writing)
+        # stack-overflows on library scan
+        image: jellyfin/jellyfin:2025062305
+        volumeMounts:
+        - name: jf-fs
+          mountPath: /
+        - name: cache-volume
+          mountPath: /cache
+        ports:
+        - containerPort: 8096
+      volumes:
+      - name: jf-fs
+        persistentVolumeClaim:
+          claimName: jellyfin-ceph-pvc
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 150Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-ceph
+  namespace: archie 
+spec:
+  selector:
+    app: jellyfin-ceph
+  ports:
+  - protocol: TCP
+    port: 8097 
+    targetPort: 8096
+
