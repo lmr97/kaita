@@ -17,7 +17,7 @@ spec:
       - name: jellyfin
         # tag 2025090805 (latest at time of writing)
         # stack-overflows on library scan
-        image: jellyfin/jellyfin:2025062305
+        image: jellyfin/jellyfin:10.10.7
         volumeMounts:
         - name: jf-config
           mountPath: /config
@@ -25,7 +25,6 @@ spec:
           mountPath: /media
         - name: cache-volume
           mountPath: /cache
-        restartPolicy: Never
         ports:
         - containerPort: 8096
       volumes:
@@ -37,7 +36,7 @@ spec:
           claimName: jellyfin-cfg-pvc
       - name: cache-volume
         emptyDir:
-          sizeLimit: 150Mi
+          sizeLimit: 50Gi
 
 ---
 

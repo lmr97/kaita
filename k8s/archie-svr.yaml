@@ -44,7 +44,7 @@ spec:
                 name: db-login  # secret name
                 key: db-pass
           - name: RUST_LOG
-            value: "custom_backend=info,custom_backend=debug"
+            value: "debug"
           - name: DB_URL
             value: "mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@svr-db.archie.svc.cluster.local:3306/archie"
           - name: PY_CONT_SOCK

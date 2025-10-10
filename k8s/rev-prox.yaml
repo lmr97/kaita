@@ -3,11 +3,13 @@ kind: IngressRoute
 metadata:
   name: main-rev-prox
   namespace: archie
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-staging"
 spec:
   entryPoints:
     - websecure
   tls:
-    secretName: archie-tls
+    secretName: archie-tls-auto
   routes:
   #- kind: Rule
   #  match: Host(`archie.zapto.org`) && PathPrefix(`/jf-ceph`)
@@ -30,3 +32,5 @@ spec:
       name: archie-svr
       namespace: archie
       port: 4949
+
+

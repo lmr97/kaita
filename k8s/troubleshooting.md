@@ -42,4 +42,29 @@ sudo ufw allow 8472
 
 (Some of these may be redundant, but I know at least one of these solved the issue.)
 
+## Persmissions issues in generating Ceph PVs
 
+New secrets for the storage class need to be generated. 
+
+1. Delete the secrets (these come from the `ceph-storage-class.yaml` file):
+
+```
+kubectl delete secret rook-csi-cephfs-node
+kubectl delete secret rook-csi-cephfs-provisioner
+```
+
+2. Delete the `rook-cephfs` storage class
+
+```
+kubectl delete -f ceph-storage-class.yaml
+```
+
+3. Recreate the storage class
+
+```
+kubectl create -f ceph-storage-class.yaml
+```
+
+## Jellyfin server shuts down after a set amount of movie playback
+
+The issue is with the cache size, which, in the deployment, is an `EmptyDir` volume with a set size. Simply increase the size in the definition and apply. 
