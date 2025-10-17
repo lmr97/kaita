@@ -145,6 +145,16 @@ in
         init.defaultBranch = "main";
       };
     };
+    bash = {
+      shellInit = 
+	''
+	  if [[ $SSH_CONNECTION ]]
+	  then
+	      	cd ~/kaita/nixos
+		neofetch
+	  fi
+      	'';
+    };
   };
 
   # List packages installed in system profile.
