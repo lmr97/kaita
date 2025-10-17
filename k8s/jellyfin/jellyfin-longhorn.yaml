@@ -1,0 +1,88 @@
+# PVC for the media
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media-longhorn
+  namespace: archie
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 180Gi
+
+
+---
+
+# PVC for the config/metadata volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cfg-longhorn
+  namespace: archie
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-longhorn
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: jellyfin-longhorn
+  template:
+    metadata:
+      labels:
+        app: jellyfin-longhorn
+    spec:
+      containers:
+      - name: jellyfin-lh
+        # tag 2025090805 (latest at time of writing)
+        # stack-overflows on library scan
+        image: jellyfin/jellyfin:10.10.7
+        volumeMounts:
+        - name: jf-config
+          mountPath: /config
+        - name: jf-media
+          mountPath: /media
+        - name: cache-volume
+          mountPath: /cache
+        ports:
+        - containerPort: 8096
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-longhorn
+      - name: jf-config
+        persistentVolumeClaim:
+          claimName: jellyfin-cfg-longhorn
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 50Gi
+
+---
+        
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-longhorn
+  namespace: archie 
+spec:
+  selector:
+    app: jellyfin-longhorn
+  ports:
+  - protocol: TCP
+    port: 8097
+    targetPort: 8096
+

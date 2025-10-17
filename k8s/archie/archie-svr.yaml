@@ -4,6 +4,17 @@
 # stateless; any statefulness they present with is because of the 
 # database exclusively.
 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archie-db-pvc
+  namespace: archie
+spec:
+  storageClass: longhorn
+  size:
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:

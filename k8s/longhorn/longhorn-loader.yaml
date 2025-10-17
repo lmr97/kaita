@@ -1,0 +1,47 @@
+# this exists solely to load data into the CephFS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longhorn-loader 
+  namespace: archie
+  labels:
+    app: longhorn-loader
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: longhorn-loader 
+  template:
+    metadata:
+      labels:
+        app: longhorn-loader
+    spec:
+      containers:
+      - name: loader 
+        image: debian
+        imagePullPolicy: IfNotPresent
+        command: [ "sleep", "infinity" ]
+        volumeMounts:
+        - name: jf-media
+          mountPath: /media
+        - name: jf-cfg
+          mountPath: /config
+
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-longhorn
+          readOnly: false
+      - name: jf-cfg
+        persistentVolumeClaim:
+          claimName: jellyfin-cfg-longhorn
+          readOnly: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - archie

@@ -1,3 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: archie-db-pvc
+  namespace: archie
+spec:
+  storageClass: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---   
+    
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -42,10 +57,9 @@ spec:
               mountPath: /var/lib/mysql
       volumes:
         - name: db-vol
-          #persistentVolumeClaim:
-          #  claimName: archie-db-pvc
-          emptyDir:
-            sizeLimit: 1Gi
+          persistentVolumeClaim:
+            claimName: archie-db-pvc
+
 ---
 
 apiVersion: v1
@@ -60,4 +74,5 @@ spec:
   ports:
   - protocol: TCP
     port: 3306
+
 

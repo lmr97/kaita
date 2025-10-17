@@ -67,4 +67,20 @@ kubectl create -f ceph-storage-class.yaml
 
 ## Jellyfin server shuts down after a set amount of movie playback
 
-The issue is with the cache size, which, in the deployment, is an `EmptyDir` volume with a set size. Simply increase the size in the definition and apply. 
+The issue is with the cache size, which, in the deployment, is an `EmptyDir` volume with a set size. Simply increase the size in the definition and apply.
+
+
+## Longhorn Manager throwing an error about iscsiadm/open-iscsi not being installed (when it is)
+
+This is an issue with where NixOS places its binaries by default: it places them somewhere under the `/run` directory, not in `/usr/bin`. So simply sym-link the `nsenter` and `iscsiadm` executables to the expected path:
+
+```
+sudo ln -s $(which nsenter) /usr/bin/nsenter
+sudo ln -s $(which iscsiadm) /usr/bin/iscsiadm
+```
+
+## NixOS nodes drop connection after rebuild
+
+Add 8.8.8.8 to the name servers, rebuild, and then you can remove it. The node needs to be reminded of the DNS lookups, I suppose.
+
+

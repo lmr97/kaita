@@ -1,0 +1,71 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: disable-nosniff
+  namespace: longhorn-system
+spec:
+  headers:
+    # Disable the X-Content-Type-Options: nosniff header for Longhorn.
+    contentTypeNosniff: false
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: svc-longhorn-headers
+  namespace: longhorn-system
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+
+---
+
+# Enable auto-detection
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: autodetect-content-type
+  namespace: longhorn-system
+spec:
+  contentType: {}
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: longhorn-basic-auth
+  namespace: longhorn-system
+spec:
+  basicAuth:
+    secret: basic-auth
+    realm: "Authentication Required "
+
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: longhorn-ui
+  namespace: longhorn-system 
+spec:
+  entryPoints:
+    - web
+  routes:
+  - kind: Rule
+    match: Host(`archie.zapto.org`) && PathPrefix(`/longhorn-ui`)
+    middlewares:
+    #- name: disable-nosniff
+    #  namespace: longhorn-system
+    #- name: svc-longhorn-headers
+    #  namespace: longhorn-system
+    #- name: longhorn-basic-auth
+    #  namespace: longhorn-system
+    services:
+    - kind: Service
+      name: longhorn-frontend
+      namespace: longhorn-system
+      port: 80
+
