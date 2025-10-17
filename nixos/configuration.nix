@@ -4,21 +4,14 @@
 
 { config, lib, pkgs, ... }:
 
-#let 
-#  netId = {
-#    method = "manual";
-#    address = "192.168.0.112/24";
-#    gateway = "192.168.0.1";
-#    dns = "8.8.8.8";
-#};
-#  home-manager = builtins.fetchTarball https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz;
-#in  
+let 
+  thisMachine = lib.importJSON "/etc/nixos/this-machine.json";
+in  
 {
   imports =
     [ # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
       /home/martin/kaita/nixos/hosting-configuration.nix
-      #(import "${home-manager}/nixos")
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -45,11 +38,11 @@
   
 
   networking = {
-    hostName = "kopaka";
+    hostName = thisMachine.hostName;
     interfaces.wlp2s0 = {
       ipv4.addresses = [
         {
-          address = "192.168.0.112";
+          address = thisMachine.ipAddress;
           prefixLength = 24;
         }
       ];
@@ -200,4 +193,3 @@
   system.stateVersion = "25.05"; # Did you read the comment?
 
 }
-
