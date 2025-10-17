@@ -2,12 +2,14 @@
 
 let
   kubeMasterIP = "192.168.0.111";
+  localValues = lib.importJSON "/etc/nixos/this-machine.json";
 in
 {
   config = lib.mkMerge [
     {
       environment.systemPackages = with pkgs; [
 	docker-compose
+	openiscsi
       ];
    
       virtualisation.docker = {
@@ -22,7 +24,7 @@ in
     	enable = true;
     	role = "agent";   
 	# temp token, invalid by the time you're seeing this 
-	token = "K10de70da372eaf0b629b3b58284c49a5039b4fc7fa049c827be99f38612cd02561::9nix64.z3y3zriq7dq3apyh";
+	token = localValues.k8sToken;
    	serverAddr = "https://${kubeMasterIP}:6443";
       };
  
