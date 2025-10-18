@@ -27,6 +27,12 @@ in
 	token = thisMachine.k8sToken;
    	serverAddr = "https://${kubeMasterIP}:6443";
       };
+       
+      services.openiscsi = {
+	enable = true;
+	name = "open-iscsi-nix";  # name may not matter
+	discoverPortal = "ip:3260";
+      };
  
       services.nfs.settings.mountd.manage-gids = true;
       
