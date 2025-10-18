@@ -2,7 +2,7 @@
 
 let
   kubeMasterIP = "192.168.0.111";
-  localValues = lib.importJSON "/etc/nixos/this-machine.json";
+  thisMachine = lib.importJSON "/etc/nixos/this-machine.json";
 in
 {
   config = lib.mkMerge [
@@ -24,7 +24,7 @@ in
     	enable = true;
     	role = "agent";   
 	# temp token, invalid by the time you're seeing this 
-	token = localValues.k8sToken;
+	token = thisMachine.k8sToken;
    	serverAddr = "https://${kubeMasterIP}:6443";
       };
  
