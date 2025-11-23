@@ -33,7 +33,15 @@ in
 	name = "open-iscsi-nix";  # name may not matter
 	discoverPortal = "ip:3260";
       };
- 
+
+      # PROBABLY YOUR ISSUE
+      # this may cause an issue with existing symbolic links
+      systemd.tmpfiles.rules = [
+	"L /usr/bin/nsenter  - - - - /run/current-system/sw/bin/nsenter"
+	"L /usr/bin/iscsiadm - - - - /run/current-system/sw/bin/iscsiadm"
+	"L /usr/bin/mount    - - - - /run/current-system/sw/bin/mount"
+      ];
+
       services.nfs.settings.mountd.manage-gids = true;
       
       fileSystems = {
