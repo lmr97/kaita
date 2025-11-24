@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sans-mercy-rev-prox
+  namespace: sans-mercy 
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-issuer"
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: sans-mercy-tls-auto
+  routes:
+  - kind: Rule
+    match: Host(`sansmercy.com`)
+    services:
+    - kind: Service 
+      name: sans-mercy-wp 
+      namespace: sans-mercy
+      port: 1998
