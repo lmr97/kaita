@@ -38,7 +38,7 @@ metadata:
   namespace: sans-mercy
   labels:
     app: sans-mercy-wp
-spec:
+spec: 
   selector:
     matchLabels:
       app: sans-mercy-wp
@@ -76,7 +76,15 @@ spec:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
       volumes:
-      - name: mysql-persistent-storage
-        persistentVolumeClaim:
-          claimName: sm-db-pv-claim
-
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: sm-db-pv-claim
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - archie
