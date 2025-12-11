@@ -26,6 +26,8 @@ spec:
           mountPath: /media
         - name: jf-cfg
           mountPath: /config
+        #- name: db-data
+        #  mountPath: /db
 
       volumes:
       - name: jf-media
@@ -36,12 +38,15 @@ spec:
         persistentVolumeClaim:
           claimName: jellyfin-cfg-longhorn
           readOnly: false
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - archie
+      #- name: db-data
+      #  persistentVolumeClaim:
+      #    claimName: archie-db-pvc
+      #affinity:
+      #  nodeAffinity:
+      #    requiredDuringSchedulingIgnoredDuringExecution:
+      #      nodeSelectorTerms:
+      #      - matchExpressions:
+      #        - key: kubernetes.io/hostname
+      #          operator: In
+      #          values:
+      #          - archie 

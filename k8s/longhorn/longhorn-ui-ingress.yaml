@@ -1,19 +1,18 @@
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: disable-nosniff
+  name: longhorn-ui-auth
   namespace: longhorn-system
 spec:
-  headers:
-    # Disable the X-Content-Type-Options: nosniff header for Longhorn.
-    contentTypeNosniff: false
+  basicAuth:
+    secret: longhorn-ui-login
 
 ---
 
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: svc-longhorn-headers
+  name: set-fwd-proto-header
   namespace: longhorn-system
 spec:
   headers:
@@ -22,50 +21,47 @@ spec:
 
 ---
 
-# Enable auto-detection
+# This allows the server serving up the UI to get the
+# correct URLs for the websocket portion of the backend.
+#
+# Websocket URLs, as sent through, are relative to the 
+# backend server root, not to the domain root. The poor 
+# Nginx simply doesn't know what to do with any requests 
+# that start with /longhorn-ui that want a WS connection.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: autodetect-content-type
+  name: strip-lh-prefix
   namespace: longhorn-system
 spec:
-  contentType: {}
+  stripPrefix:
+    prefixes:
+      - /longhorn-ui
 
 ---
 
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: longhorn-basic-auth
-  namespace: longhorn-system
-spec:
-  basicAuth:
-    secret: basic-auth
-    realm: "Authentication Required "
-
----
-
-apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
+apiVersion: traefik.io/v1alpha1
 metadata:
-  name: longhorn-ui
-  namespace: longhorn-system 
+  name: longhorn-frontend
+  namespace: longhorn-system
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-issuer"
 spec:
   entryPoints:
-    - web
+    - websecure
+  tls:
+    secretName: longhorn-tls-auto
   routes:
-  - kind: Rule
-    match: Host(`archie.zapto.org`) && PathPrefix(`/longhorn-ui`)
-    middlewares:
-    #- name: disable-nosniff
-    #  namespace: longhorn-system
-    #- name: svc-longhorn-headers
-    #  namespace: longhorn-system
-    #- name: longhorn-basic-auth
-    #  namespace: longhorn-system
-    services:
-    - kind: Service
-      name: longhorn-frontend
-      namespace: longhorn-system
-      port: 80
-
+    - kind: Rule
+      match: Host(`archie.zapto.org`) && ( PathPrefix(`/longhorn-ui`) || HeaderRegexp(`Referer`, `^http(s)?://archie.zapto.org/longhorn-ui`) )
+      middlewares:
+      - name: longhorn-ui-auth
+        namespace: longhorn-system
+      - name: strip-lh-prefix
+        namespace: longhorn-system
+      services:
+      - name: longhorn-frontend
+        namespace: longhorn-system
+        passHostHeader: true
+        port: 80
