@@ -1,0 +1,17 @@
+# From: https://cert-manager.io/docs/tutorials/getting-started-with-cert-manager-on-google-kubernetes-engine-using-lets-encrypt-for-ingress-ssl/#7-create-an-issuer-for-lets-encrypt-staging
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-issuer
+  namespace: longhorn-system
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: lmreid1997@gmail.com
+    profile: tlsserver
+    privateKeySecretRef:
+      name: letsencrypt-pk
+    solvers:
+    - http01:
+        ingress:
+          class: traefik
