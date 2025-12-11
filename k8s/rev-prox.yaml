@@ -4,7 +4,7 @@ metadata:
   name: main-rev-prox
   namespace: archie
   annotations:
-    cert-manager.io/issuer: "letsencrypt-staging"
+    cert-manager.io/issuer: "letsencrypt-issuer"
 spec:
   entryPoints:
     - websecure
@@ -12,10 +12,17 @@ spec:
     secretName: archie-tls-auto
   routes:
   - kind: Rule
+    match: Host(`archie.zapto.org`) && PathPrefix(`/jf-lh`)
+    services:
+    - kind: Service 
+      name: jellyfin-longhorn
+      namespace: archie
+      port: 1997
+  - kind: Rule
     match: Host(`archie.zapto.org`) && PathPrefix(`/jellyfin`)
     services:
     - kind: Service 
-      name: jellyfin #-longhorn
+      name: jellyfin
       namespace: archie
       port: 8096
   - kind: Rule

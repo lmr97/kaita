@@ -1,0 +1,30 @@
+# PVC for the media
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media-longhorn
+  namespace: archie
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+
+
+---
+
+# PVC for the config/metadata volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cfg-longhorn
+  namespace: archie
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi

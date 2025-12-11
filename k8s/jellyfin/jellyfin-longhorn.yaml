@@ -1,36 +1,3 @@
-# PVC for the media
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: jellyfin-media-longhorn
-  namespace: archie
-spec:
-  storageClassName: longhorn
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 180Gi
-
-
----
-
-# PVC for the config/metadata volume
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: jellyfin-cfg-longhorn
-  namespace: archie
-spec:
-  storageClassName: longhorn
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Mi
-
----
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,13 +8,15 @@ spec:
   selector:
     matchLabels:
       app: jellyfin-longhorn
+      tier: longhorn
   template:
     metadata:
       labels:
         app: jellyfin-longhorn
+        tier: longhorn
     spec:
       containers:
-      - name: jellyfin-lh
+      - name: jellyfin
         # tag 2025090805 (latest at time of writing)
         # stack-overflows on library scan
         image: jellyfin/jellyfin:10.10.7
@@ -72,7 +41,7 @@ spec:
           sizeLimit: 50Gi
 
 ---
-        
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -81,8 +50,9 @@ metadata:
 spec:
   selector:
     app: jellyfin-longhorn
+    tier: longhorn
   ports:
   - protocol: TCP
-    port: 8097
+    port: 1997 
     targetPort: 8096
 
