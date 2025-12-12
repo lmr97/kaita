@@ -52,7 +52,7 @@ in
       secretsFile = "/etc/wpa_supplicant/wireless.conf";
       networks.Alpha6.pskRaw = "ext:psk_home";
     };
-    nameservers = [ "192.168.0.1" ];
+    nameservers = [ "192.168.0.1" "8.8.8.8" ];
     defaultGateway = "192.168.0.1";
     firewall = {
       enable = true;
