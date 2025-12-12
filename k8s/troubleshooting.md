@@ -83,4 +83,26 @@ sudo ln -s $(which iscsiadm) /usr/bin/iscsiadm
 
 Add 8.8.8.8 to the name servers, rebuild, and then you can remove it. The node needs to be reminded of the DNS lookups, I suppose.
 
+## Longhorn raising "Output: nsenter: failed to execute mount: No such file or directory" on the NixOS nodes
+
+The NixOS systems don't have `mount` on the standard Hierarchical File System path (`/usr/bin`), so it needs to be symlinked.
+
+```
+sudo ln -s /run/current-system/sw/bin/mount /usr/bin/mount
+```
+
+See [https://github.com/longhorn/longhorn/issues/2166#issuecomment-3094699127](this GitHub issue).
+
+
+## Traefik issues with second Jellyfin server
+
+A Jellyfin server has a certain base URL configured in `<JELLYFIN CONFIG DIR>/config/network.xml`, by the option `NetworkConfiguration.BaseURL`. Every sub-request of the main server will be prefixed with this value. So this value has to match the base of the place in the `archie.zapto.org` API where it is supposed to go.
+
+For instance, even if you configured the second server to have `/jf2` for its root in the Traefik reverse proxy, and the Jellyfin server itself is configured with a base URL of `/jellyfin`, then Traefik will return a 404 error. This is because the Jellyfin server root returns 302 (Found), so it will redirect all requests to, in this example, some page like `/jellyfin/web/...`, which may not exist in the reverse proxy, causing the error. 
+
+## Solutions
+
+- Make the `BaseURL` value reflect the reverse proxy's entrypoint
+
+- Make the `BaseURL` value relative (prefix with `.`)
 
