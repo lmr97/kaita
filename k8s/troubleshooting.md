@@ -75,7 +75,7 @@ The issue is with the cache size, which, in the deployment, is an `EmptyDir` vol
 This is an issue with where NixOS places its binaries by default: it places them somewhere under the `/run` directory, not in `/usr/bin`. So simply sym-link the `nsenter` and `iscsiadm` executables to the expected path:
 
 ```
-sudo ln -s $(which nsenter) /usr/bin/nsenter
+sudo ln -s $(which nsenter)  /usr/bin/nsenter
 sudo ln -s $(which iscsiadm) /usr/bin/iscsiadm
 ```
 
@@ -105,4 +105,9 @@ For instance, even if you configured the second server to have `/jf2` for its ro
 - Make the `BaseURL` value reflect the reverse proxy's entrypoint
 
 - Make the `BaseURL` value relative (prefix with `.`)
+
+
+## Problems with login hanging on `ssh` (for a NixOS node)
+
+The issue seems to be that the NixOS seems to wipe the files in `~/.ssh` sometimes. But, as long as they're on one NixOS node, they can be successfully be copied into the other and resolve the problem. kopaka and gali have essentially equivalent ones (just change the host name), and there is an additional copy on archie and my main laptop, each at `~/nixos-ssh-bkup`
 
