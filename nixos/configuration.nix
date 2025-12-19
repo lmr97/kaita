@@ -148,7 +148,7 @@ in
     bash = {
       shellInit = 
 	''
-	  if [[ $SSH_CONNECTION ]]
+	  if [[ $SSH_CONNECTION && $- == *i* ]]
 	  then
 	      	cd ~/kaita/nixos
 		neofetch
