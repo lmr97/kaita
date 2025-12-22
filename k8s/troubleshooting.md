@@ -111,3 +111,21 @@ For instance, even if you configured the second server to have `/jf2` for its ro
 
 The issue seems to be that the NixOS seems to wipe the files in `~/.ssh` sometimes. But, as long as they're on one NixOS node, they can be successfully be copied into the other and resolve the problem. kopaka and gali have essentially equivalent ones (just change the host name), and there is an additional copy on archie and my main laptop, each at `~/nixos-ssh-bkup`
 
+## CrowdSec not alerting on anything
+
+This is because, due to the way Kubernetes is set up, all requests (especially to Traefik) are sent as the cluster's local IP address, and local IPs are automatically whitelisted. The original IP needs to be included in the HTTP request. So, to configure that, add the following to the `traefik-cfg.yaml` file:
+
+```
+service:
+  spec:
+    externalTrafficPolicy: Local 
+```
+
+This could also be due to the fact that that access logs (HTTP request logs) are note enabled on k3s by default. To enable those, add this to `traefik-cfg.yaml`:
+
+```
+logs:
+  access:
+    enable: true
+    format: common  # could also be `json`
+```
