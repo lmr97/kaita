@@ -65,6 +65,8 @@ in
 	2379  # for Flannel
 	2380  # for k8s/Flannel
 	8472  # for k8s/Flannel
+	8080  # for CrowdSec
+	6060  # for Crowdsec metrics
       ];
       allowedUDPPorts = [ 
 	8472  # Flannel
