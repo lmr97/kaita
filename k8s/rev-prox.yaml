@@ -22,9 +22,9 @@ spec:
     match: Host(`archie.zapto.org`) && PathPrefix(`/jellyfin`)
     services:
     - kind: Service 
-      name: jellyfin
+      name: jellyfin-longhorn
       namespace: archie
-      port: 8096
+      port: 1997
   - kind: Rule
     match: Host(`archie.zapto.org`) #&& PathPrefix(`/`)
     services:
