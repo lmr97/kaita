@@ -47,6 +47,14 @@ in
         }
       ];
     };
+   # bridges = {
+   #   br0 = {
+   # 	interfaces = [
+   #   	  "wlp2s0"
+   #   	  "enp0s31f6"
+   # 	];
+   #   };
+   # };
     wireless = {
       enable = true;
       secretsFile = "/etc/wpa_supplicant/wireless.conf";
