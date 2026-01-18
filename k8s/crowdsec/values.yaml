@@ -1,0 +1,79 @@
+# for raw logs format: json or cri (docker|containerd)
+container_runtime: containerd
+image:
+  tag: "latest" # -debian"
+agent:
+  # Specify each pod whose logs you want to process
+  env:
+    - name: PARSERS
+      value: "crowdsecurity/cri-logs"
+    - name: COLLECTIONS
+      value: "crowdsecurity/traefik crowdsecurity/linux"
+  acquisition:
+    # The namespace where the pod is located
+    - namespace: kube-system
+      # The pod name
+      podName: traefik-*
+      # as in crowdsec configuration, we need to specify the program name to find a matching parser
+      program: traefik
+  additionalAcquisition:
+    # dont uncomment this as it prevents the agent from parsing any logs at all
+    #- source: journalctl
+    #  journalctl_filter:
+    #    - "_SYSTEMD_UNIT=sshd.service"
+    #  labels:
+    #    type: syslog
+    - source: file
+      filename: /var/log/ssh.log
+      labels:
+        type: syslog
+  #affinity:
+  #  nodeAffinity:
+  #      requiredDuringSchedulingIgnoredDuringExecution:
+  #          nodeSelectorTerms:
+  #          - matchExpressions:
+  #            - key: kubernetes.io/hostname
+  #              operator: In
+  #              values:
+  #              - archie
+appsec:
+  enabled: true
+  env:
+    - name: COLLECTIONS
+      value: "crowdsecurity/traefik crowdsecurity/linux crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
+  acquisitions:
+    - appsec_config: crowdsecurity/appsec-default
+      labels:
+        type: appsec
+      listen_addr: 0.0.0.0:7422
+      path: /
+      source: appsec
+
+lapi:
+  enabled: true
+  # values can be pulled from environment with either `envsubst`
+  # or with Helm's `--set` options. (see local alias `cs-upgrade`)
+  env:
+    # To enroll the Security Engine to the console
+    - name: ENROLL_KEY
+      value: "$CROWDSEC_ENROLL_KEY"
+    - name: ENROLL_INSTANCE_NAME
+      value: "kaita"
+    - name: ENROLL_TAGS
+      value: "k3s linux kaita archie"
+    # This key comes from running `cscli bouncer add traefik-main-bouncer`
+    # NOTE: This variable being at index 3 is an assumption of the `cs-update`
+    # local command. Don't place any env vars before this one.
+    - name: BOUNCER_NAME_traefik-bouncer
+      value: "$CROWDSEC_BOUNCER_KEY"
+  #affinity:
+  #  nodeAffinity:
+  #      requiredDuringSchedulingIgnoredDuringExecution:
+  #          nodeSelectorTerms:
+  #          - matchExpressions:
+  #            - key: kubernetes.io/hostname
+  #              operator: In
+  #              values:
+  #              - archie
+
+
