@@ -129,3 +129,26 @@ logs:
     enable: true
     format: common  # could also be `json`
 ```
+
+## Getting Crowdsec to recognize the Traefik Remediation Component
+
+After defining the middleware, attach it to the Traefik static config, via the Helm Chart file, `traefik-cfg.yaml`, and running `kubectl apply -f traefik-cfg.yaml`.
+
+Here is the quickstart for the bouncer: https://doc.crowdsec.net/docs/next/appsec/quickstart/traefik
+
+Here is the guide for updating K3s components: https://docs.k3s.io/add-ons/helm#customizing-packaged-components-with-helmchartconfig
+
+## Crowdsec issue: Traefik Bouncer not talking to LAPI
+
+Use a new API key made with `cscli bouncer add <bouncer-name>` for the Middleware resource field `crowdsecLapiKey`. This key must also be used in the Helm chart for the Appsec section, with an env variable named `BOUNCER_KEY_<bouncer-name>`, with a value of the new generated key. This registers the bouncer with the Console, so alerts and actions can be seen.
+
+## Crowdsec issue: sudden failure to parse Traefik logs
+
+All these must be true for parsing to succeed:
+
+- Access logs must be enabled
+
+- Original IP addresses must be forwarded
+
+- Logs must be JSON-formatted
+
