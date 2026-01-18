@@ -18,12 +18,11 @@ spec:
     spec:
       containers:
       - name: loader 
-        image: debian
-        imagePullPolicy: IfNotPresent
-        command: [ "sleep", "infinity" ]
+        image: lmr97/jellyfin-chown-pl:1.1.0
+        imagePullPolicy: Always 
         volumeMounts:
-        - name: jf-media
-          mountPath: /media
+        #- name: jf-media
+        #  mountPath: /media
         - name: jf-cfg
           mountPath: /config
         #- name: db-data
