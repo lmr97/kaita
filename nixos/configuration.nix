@@ -117,6 +117,47 @@ in
     };
   };
 
+  # route ssh logs to file to they can be captured
+  # by CrowdSec agents. Journald feature in CrowdSec
+  # is not functional.
+  services.syslog-ng = {
+    enable = true;
+    configHeader = ''
+      @version: 4.10
+      @include "scl.conf"
+    '';
+    extraConfig = ''
+      source s_local {
+          system();
+          internal();
+      };
+      destination ssh { file("/var/log/ssh.log"); };
+      filter f_ssh { program("sshd"); };
+      log { 
+	  source(s_local); 
+	  filter(f_ssh); 
+	  destination(ssh); 
+	  flags(final); 
+      };
+      options {
+          chain_hostnames(off);
+          create_dirs(no);
+          dns_cache(no);
+          flush_lines(0);
+          group("log");
+          keep_hostname(yes);
+          log_fifo_size(10000);
+          perm(0640);
+          stats(freq(0));
+          time_reopen(10);
+          use_dns(no);
+          use_fqdn(no);
+      };
+    '';
+  };
+
+
+
   # Set your time zone.
   time.timeZone = "America/Denver";
 
