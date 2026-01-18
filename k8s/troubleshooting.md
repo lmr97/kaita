@@ -152,3 +152,8 @@ All these must be true for parsing to succeed:
 
 - Logs must be JSON-formatted
 
+## Crowdsec issue: 403 from valid enroll token
+
+The login requests are rate-limited to 20 requests per 50 minutes. This can be exceeded by excessive `helm upgrade`s and container restarts. 
+
+See [this link](https://docs.crowdsec.net/u/troubleshooting/capi_403/) for more information.
