@@ -13,7 +13,8 @@ spec:
         level: "INFO"
       access:
         enabled: true
-        format: common
+        # must be JSON, or else will not parse
+        format: json
         fields:
           defaultMode: keep
           names:
@@ -33,7 +34,7 @@ spec:
     # Proxy Protocol needs “enabled”, not only trustedIPs
     additionalArguments:
       - --accesslog=true  # double-check logging stays on even if values drift
-      #- --accesslog.format=json  # enforce JSON formatting at the CLI level
+      - --accesslog.format=json  # enforce JSON formatting at the CLI level
       - --entrypoints.web.proxyProtocol=true  # enable Proxy Protocol on the HTTP entrypoint
       - --entrypoints.websecure.proxyProtocol=true  # enable Proxy Protocol on the HTTPS entrypoint
       - --entrypoints.web.proxyProtocol.trustedIPs=10.0.0.0/8,192.168.0.0/16  # trust proxy headers from your internal ranges
