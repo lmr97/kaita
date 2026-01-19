@@ -114,6 +114,7 @@ in
       X11Forwarding = false;
       PasswordAuthentication = false;
       PermitRootLogin = "prohibit-password";
+      
     };
   };
 
@@ -184,6 +185,7 @@ in
       "networkmanager" 
       "nogroup"
     ];
+    openssh.authorizedKeys.keyFiles = [ "/home/martin/.ssh/authorized_keys" ];
   };
   
   programs = {
