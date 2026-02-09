@@ -21,12 +21,12 @@ spec:
             ServiceName: keep
 
     ports:
-     # web:
-     #   redirections:
-     #     entryPoint:
-     #       to: websecure
-     #       scheme: https
-     #       permanent: true
+      web:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
       websecure:
         middlewares: #  []
           - crowdsec-main-crowdsec-bouncer
