@@ -64,7 +64,7 @@ lapi:
     # This key comes from running `cscli bouncer add traefik-main-bouncer`
     # NOTE: This variable being at index 3 is an assumption of the `cs-update`
     # local command. Don't place any env vars before this one.
-    - name: BOUNCER_NAME_traefik-bouncer
+    - name: BOUNCER_NAME_traefik-rc
       value: "$CROWDSEC_BOUNCER_KEY"
   #affinity:
   #  nodeAffinity:
