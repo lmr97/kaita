@@ -157,3 +157,7 @@ All these must be true for parsing to succeed:
 The login requests are rate-limited to 20 requests per 50 minutes. This can be exceeded by excessive `helm upgrade`s and container restarts. 
 
 See [this link](https://docs.crowdsec.net/u/troubleshooting/capi_403/) for more information.
+
+## Crowdsec Issue: Bouncer not giving errors, appearing in console, but nor functioning
+
+Verify the API key in the bouncer middleware, recreate the middleware, then restart Traefik. Any changes to the middleware require a restart of the Traefik pod.
