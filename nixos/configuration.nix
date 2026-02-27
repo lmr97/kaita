@@ -39,14 +39,26 @@ in
 
   networking = {
     hostName = thisMachine.hostName;
-    interfaces.wlp2s0 = {
-      ipv4.addresses = [
-        {
-          address = thisMachine.ipAddress;
-          prefixLength = 24;
-        }
-      ];
-    };
+    
+    # wifi cards have one name or the other in the cluster
+    interfaces = {
+      wlp3s0 = {
+        ipv4.addresses = [
+          {
+            address = thisMachine.ipAddress;
+            prefixLength = 24;
+          }
+        ];
+      };
+      wlp2s0 = {
+        ipv4.addresses = [
+          {
+            address = thisMachine.ipAddress;
+            prefixLength = 24;
+          }
+        ];
+      };
+   };
    # bridges = {
    #   br0 = {
    # 	interfaces = [
