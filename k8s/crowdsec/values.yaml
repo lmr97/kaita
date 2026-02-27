@@ -16,7 +16,10 @@ agent:
       podName: traefik-*
       # as in crowdsec configuration, we need to specify the program name to find a matching parser
       program: traefik
-  additionalAcquisition:
+    - namespace: archie
+      podName: jellyfin-longhorn-*
+      program: dotnet
+additionalAcquisition:
     # dont uncomment this as it prevents the agent from parsing any logs at all
     #- source: journalctl
     #  journalctl_filter:
