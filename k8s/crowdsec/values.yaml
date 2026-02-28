@@ -18,7 +18,7 @@ agent:
       program: traefik
     - namespace: archie
       podName: jellyfin-longhorn-*
-      program: dotnet
+      program: jellyfin 
 additionalAcquisition:
     # dont uncomment this as it prevents the agent from parsing any logs at all
     #- source: journalctl
