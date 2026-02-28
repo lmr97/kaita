@@ -161,3 +161,23 @@ See [this link](https://docs.crowdsec.net/u/troubleshooting/capi_403/) for more 
 ## Crowdsec Issue: Bouncer not giving errors, appearing in console, but nor functioning
 
 Verify the API key in the bouncer middleware, recreate the middleware, then restart Traefik. Any changes to the middleware require a restart of the Traefik pod.
+
+## Crowdsec Issue: logs seemingly suddenly not being parsed (Crowdsec Console warning)
+
+### What I checked
+
+- Traefik pod health (good)
+- Crowdsec pods (no errors)
+- That the access logs were both being taken and in JSON format (they were)
+- Traefik config (unchanged since when working). 
+- Checked access logs again. Noted that the testing request came from a 10.0.0.0/8 address, which is whitelisted in the config (K8s cluster IP range)
+- Checked the node that Traefik was running on: **It was on a worker node, not control node**
+
+### Root cause
+
+Traefik was running on worker node, not control node. All traffic was being redirected to it from the control node, so while the logs were actually being parsed, testing request got whitelisted.
+
+### Solution
+
+Edit the Traefik deployment configuration (using `kubectl edit`, since it was bundled with the k3s distribution) to give the pod a node affinity for the the control node.
+
