@@ -169,7 +169,9 @@ in
     '';
   };
 
-
+  security.pam.sshAgentAuth = {
+    enable = true;
+  };
 
   # Set your time zone.
   time.timeZone = "America/Denver";
