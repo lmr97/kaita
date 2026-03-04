@@ -223,6 +223,7 @@ in
 	  fi
       	'';
     };
+    ssh.startAgent = true;
   };
 
   # List packages installed in system profile.
