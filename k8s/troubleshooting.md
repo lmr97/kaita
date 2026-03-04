@@ -177,7 +177,11 @@ Verify the API key in the bouncer middleware, recreate the middleware, then rest
 
 Traefik was running on worker node, not control node. All traffic was being redirected to it from the control node, so while the logs were actually being parsed, testing request got whitelisted.
 
+*Alternatively*, updating the K8s configuration directly may have wiped the configuration of Traefik itself, taking out its access logs.
+
 ### Solution
 
 Edit the Traefik deployment configuration (using `kubectl edit`, since it was bundled with the k3s distribution) to give the pod a node affinity for the the control node.
+
+...and re-apply the file that configures Traefik itself (`./traefik-cfg.yaml`), since the former editing seems to have overwritten that config.
 
