@@ -19,7 +19,7 @@ spec:
       - name: jellyfin
         # tag 2025090805 (latest at time of writing)
         # stack-overflows on library scan
-        image: jellyfin/jellyfin:10.10.7
+        image: jellyfin/jellyfin:10.11.6
         volumeMounts:
         - name: jf-config
           mountPath: /config
@@ -39,6 +39,15 @@ spec:
       - name: cache-volume
         emptyDir:
           sizeLimit: 50Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - pohatu 
 
 ---
 
