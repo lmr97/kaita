@@ -29,11 +29,13 @@ function progress-bar() {
 
 
 echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] Importing new files from MacBook to Archie...\n"
+
+IMPORT_TIME=$(date -Im)
 rsync \
 	--recursive \
 	--progress \
 	'macbook:/Users/martinreid/Music/music-downloads/Music/' \
-	~/music-imports/
+	"~/music-imports/${IMPORT_TIME}/"
 
 
 
@@ -41,9 +43,16 @@ echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] Adding new music to Jellyfin library
 # kubectl cp isn't working with directories, so instead of the following:
 #kubectl -n archie cp ~/music-imports/ ${JFPOD:4}:/media/Music
 # we've gotta do it the old-fashioned way
-tar -cf - -C /home/martin ./music-imports |
-	kubectl -n archie exec -i $JFPOD -- \
-	tar -xf - --skip-old-files --strip-components=2 -C /media/Music
+tar -cf - \
+	--verbose \
+	-C /home/martin \
+	"./music-imports/${IMPORT_TIME}" \
+| kubectl -n archie exec -i $JFPOD -- \
+	tar -xf - \
+		--skip-old-files \
+		--verbose \
+		--strip-components=2 \
+		-C /media/Music
 # --strip-components=N removes the enclosing directories to N levels
 
 
@@ -64,9 +73,12 @@ done
 
 # for some reason progress-bar throws an error, 
 # but still prints when passed 100, 100
-# we'll igore it
+# so we'll ignore it 
+# (the remainder of the script is only printing things)
 set +e
 progress-bar 100 100	
 
 
 echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] ${ANSI_GREEN}Done!${ANSI_RESET}"
+
+set -e # undo the above `set`, in case this is running in the current shell
