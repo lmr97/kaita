@@ -14,6 +14,15 @@ spec:
       labels:
         app: archie-db 
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - archie
       containers:
         - name: archie-db 
           image: mysql:9.2
