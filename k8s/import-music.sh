@@ -35,7 +35,7 @@ rsync \
 	--recursive \
 	--progress \
 	'macbook:/Users/martinreid/Music/music-downloads/Music/' \
-	"~/music-imports/${IMPORT_TIME}/"
+	~/music-imports/${IMPORT_TIME}/
 
 
 
