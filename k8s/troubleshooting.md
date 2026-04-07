@@ -185,3 +185,6 @@ Edit the Traefik deployment configuration (using `kubectl edit`, since it was bu
 
 ...and re-apply the file that configures Traefik itself (`./traefik-cfg.yaml`), since the former editing seems to have overwritten that config.
 
+## Crowdsec Issue: Bouncer not functioning after node reboot or k3s restart
+
+Apply the `traefik-cfg.yaml` file again. I symlinked the file into `/var/lib/rancher/k3s/server/manifests`, so that should be applied automatically now. 
