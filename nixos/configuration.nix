@@ -33,6 +33,7 @@ in
       }
     ];
     supportedFilesystems = [ "nfs" ];
+    blacklistedKernelModules = [ "algif_aead" ];
   };
 
   
