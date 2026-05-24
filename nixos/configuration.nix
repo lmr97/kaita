@@ -75,7 +75,7 @@ in
     };
     hosts = {
       "192.168.0.111" = [ "archie" ];
-      "192.168.0.113" = [ "gali" ];
+      "192.168.0.113" = [ "gali" ];  # temporarily ...115 due to other dev getting ...113
       "192.168.0.114" = [ "pohatu" ];
     };
   };
