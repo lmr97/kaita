@@ -39,39 +39,19 @@ in
   
 
   networking = {
-    hostName = thisMachine.hostName;
-    
-    # wifi cards have one name or the other in the cluster
-    interfaces = {
-      wlp3s0 = {
-        ipv4.addresses = [
-          {
-            address = thisMachine.ipAddress;
-            prefixLength = 24;
-          }
-        ];
-      };
-      wlp2s0 = {
-        ipv4.addresses = [
-          {
-            address = thisMachine.ipAddress;
-            prefixLength = 24;
-          }
-        ];
-      };
-   };
-   # bridges = {
-   #   br0 = {
-   # 	interfaces = [
-   #   	  "wlp2s0"
-   #   	  "enp0s31f6"
-   # 	];
-   #   };
-   # };
-    wireless = {
+    networkmanager = {
       enable = true;
-      secretsFile = "/etc/wpa_supplicant/wireless.conf";
-      networks.Alpha6.pskRaw = "ext:psk_home";
+    };
+    hostName = thisMachine.hostName;
+    interfaces = {
+      enp0s31f6 = {
+        ipv4.addresses = [
+          {
+            address = thisMachine.ipAddress;
+	    prefixLength = 24;
+          }
+        ];
+      };
     };
     nameservers = [ "192.168.0.1" "8.8.8.8" ];
     defaultGateway = "192.168.0.1";
@@ -95,24 +75,9 @@ in
     };
     hosts = {
       "192.168.0.111" = [ "archie" ];
+      "192.168.0.113" = [ "gali" ];
+      "192.168.0.114" = [ "pohatu" ];
     };
-    # keeping `enable` on its own line so I can bring in the other
-    # commented-out options easier
-    networkmanager = {
-      enable = false;
-    };
- #     ensureProfiles.profiles = {
- #       Alpha6 = {
- #         connection = {
- #           type = "wifi";
- #           id = "Alpha6";
- #           interface-name = "wlp2s0";
- #           autoconnect = true;
- #         };
- #         ipv4 = (netId); 
- #       };
- #     };
- #   };
   };
 
 
@@ -169,11 +134,13 @@ in
       };
     '';
   };
-
+  
+  services.pcscd.enable = true;
+  
   security.pam.sshAgentAuth = {
     enable = true;
   };
-
+ 
   # Set your time zone.
   time.timeZone = "America/Denver";
 
@@ -225,6 +192,10 @@ in
       	'';
     };
     ssh.startAgent = true;
+    gnupg.agent = {
+      enable = true;
+      #pinentryPackage = "pinentry-curses";
+    };
   };
 
   # List packages installed in system profile.
@@ -236,6 +207,9 @@ in
     htop
     neofetch
     jq
+    pass
+    gnupg
+    pinentry-curses
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
