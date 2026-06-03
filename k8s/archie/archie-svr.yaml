@@ -25,6 +25,11 @@ spec:
   selector:
     matchLabels:
       app: web-svr-stateless
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 1
   template:
     metadata:
       labels:
