@@ -5,28 +5,20 @@ metadata:
   namespace: archie
   annotations:
     cert-manager.io/issuer: "letsencrypt-issuer"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
-  entryPoints:
-    - websecure
-  tls:
-    secretName: archie-tls-auto
+  #tls:
+  #  secretName: archie-tls-auto
   routes:
   - kind: Rule
-    match: Host(`archie.zapto.org`) && PathPrefix(`/jf-lh`)
+    match: Host(`jellyfin.lmrsvr.net`)
     services:
     - kind: Service 
       name: jellyfin-longhorn
       namespace: archie
       port: 1997
   - kind: Rule
-    match: Host(`archie.zapto.org`) && PathPrefix(`/jellyfin`)
-    services:
-    - kind: Service 
-      name: jellyfin-longhorn
-      namespace: archie
-      port: 1997
-  - kind: Rule
-    match: Host(`archie.zapto.org`) #&& PathPrefix(`/`)
+    match: Host(`lmrsvr.net`)
     services:
     - kind: Service
       name: archie-svr

@@ -187,4 +187,28 @@ Edit the Traefik deployment configuration (using `kubectl edit`, since it was bu
 
 ## Crowdsec Issue: Bouncer not functioning after node reboot or k3s restart
 
-Apply the `traefik-cfg.yaml` file again. I symlinked the file into `/var/lib/rancher/k3s/server/manifests`, so that should be applied automatically now. 
+Apply the `traefik-cfg.yaml` file again. I symlinked the file into `/var/lib/rancher/k3s/server/manifests`, so that should be applied automatically now.
+
+## Cloudflare Tunnel to Traefik returning 404
+
+This seems to happen when the entrypoint for the routing is not set via annotation in an `IngressRoute`. That is, when you have:
+
+```
+...
+spec:
+  router:
+    entrypoints:
+      - web
+...
+```
+
+it will not serve on port 80 like you expect. However, when you add this to your annotations:
+
+```
+traefik.ingress.kubernetes.io/router.entrypoints: web
+```
+
+it works like a charm.
+
+As a side note: the Service URL for Traefik on the server is `http://traefik.kube-system.svc.cluster.local:80`.
+
