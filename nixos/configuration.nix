@@ -68,6 +68,7 @@ in
 	8472  # for k8s/Flannel
 	8080  # for CrowdSec
 	6060  # for Crowdsec metrics
+        10250 # for k3s metrics
       ];
       allowedUDPPorts = [ 
 	8472  # Flannel
@@ -208,8 +209,11 @@ in
     neofetch
     jq
     pass
+<<<<<<< Updated upstream
     gnupg
     pinentry-curses
+=======
+>>>>>>> Stashed changes
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
