@@ -209,11 +209,8 @@ in
     neofetch
     jq
     pass
-<<<<<<< Updated upstream
     gnupg
     pinentry-curses
-=======
->>>>>>> Stashed changes
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
