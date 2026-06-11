@@ -4,6 +4,17 @@
 # stateless; any statefulness they present with is because of the 
 # database exclusively.
 
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: archie-db-pvc
+#  namespace: archie
+#spec:
+#  storageClassName: longhorn
+#  size:
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +25,11 @@ spec:
   selector:
     matchLabels:
       app: web-svr-stateless
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -24,6 +40,7 @@ spec:
       # main server
       - name: archie-svr
         image: lmr97/archie-svr:latest
+        imagePullPolicy: Always
         securityContext:
           runAsUser: 0
           runAsGroup: 0
@@ -44,7 +61,7 @@ spec:
                 name: db-login  # secret name
                 key: db-pass
           - name: RUST_LOG
-            value: "custom_backend=info,custom_backend=debug"
+            value: "debug"
           - name: DB_URL
             value: "mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@svr-db.archie.svc.cluster.local:3306/archie"
           - name: PY_CONT_SOCK
@@ -55,6 +72,7 @@ spec:
       # Letterboxd web app
       - name: lb-app
         image: lmr97/lb-web-app:latest
+        imagePullPolicy: Always
         env:
           - name: PY_DEBUG
             value: "1"

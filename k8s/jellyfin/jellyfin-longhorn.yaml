@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-longhorn
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: jellyfin-longhorn
+      tier: longhorn
+  template:
+    metadata:
+      labels:
+        app: jellyfin-longhorn
+        tier: longhorn
+    spec:
+      containers:
+      - name: jellyfin
+        # tag 2025090805 (latest at time of writing)
+        # stack-overflows on library scan
+        image: jellyfin/jellyfin:10.11.6
+        volumeMounts:
+        - name: jf-config
+          mountPath: /config
+        - name: jf-media
+          mountPath: /media
+        - name: cache-volume
+          mountPath: /cache
+        ports:
+        - containerPort: 8096
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-longhorn
+      - name: jf-config
+        persistentVolumeClaim:
+          claimName: jellyfin-cfg-longhorn
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 50Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - pohatu 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-longhorn
+  namespace: archie 
+spec:
+  selector:
+    app: jellyfin-longhorn
+    tier: longhorn
+  ports:
+  - protocol: TCP
+    port: 1997 
+    targetPort: 8096
+

@@ -4,21 +4,14 @@
 
 { config, lib, pkgs, ... }:
 
-#let 
-#  netId = {
-#    method = "manual";
-#    address = "192.168.0.112/24";
-#    gateway = "192.168.0.1";
-#    dns = "8.8.8.8";
-#};
-#  home-manager = builtins.fetchTarball https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz;
-#in  
+let 
+  thisMachine = lib.importJSON "/etc/nixos/this-machine.json";
+in  
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      ./hosting-configuration.nix
-      #(import "${home-manager}/nixos")
+      /etc/nixos/hardware-configuration.nix
+      /home/martin/kaita/nixos/hosting-configuration.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -40,26 +33,27 @@
       }
     ];
     supportedFilesystems = [ "nfs" ];
+    blacklistedKernelModules = [ "algif_aead" ];
   };
 
   
 
   networking = {
-    hostName = "kopaka";
-    interfaces.wlp2s0 = {
-      ipv4.addresses = [
-        {
-          address = "192.168.0.112";
-          prefixLength = 24;
-        }
-      ];
-    };
-    wireless = {
+    networkmanager = {
       enable = true;
-      secretsFile = "/etc/wpa_supplicant/wireless.conf";
-      networks.Alpha6.pskRaw = "ext:psk_home";
     };
-    nameservers = [ "192.168.0.1" ];
+    hostName = thisMachine.hostName;
+    interfaces = {
+      enp0s31f6 = {
+        ipv4.addresses = [
+          {
+            address = thisMachine.ipAddress;
+	    prefixLength = 24;
+          }
+        ];
+      };
+    };
+    nameservers = [ "192.168.0.1" "8.8.8.8" ];
     defaultGateway = "192.168.0.1";
     firewall = {
       enable = true;
@@ -69,6 +63,11 @@
         1918  # SSH (via router redirect)
         2049  # NFS
 	6443  # Kubernetes / K3s
+	2379  # for Flannel
+	2380  # for k8s/Flannel
+	8472  # for k8s/Flannel
+	8080  # for CrowdSec
+	6060  # for Crowdsec metrics
       ];
       allowedUDPPorts = [ 
 	8472  # Flannel
@@ -76,24 +75,9 @@
     };
     hosts = {
       "192.168.0.111" = [ "archie" ];
+      "192.168.0.113" = [ "gali" ];  # temporarily ...115 due to other dev getting ...113
+      "192.168.0.114" = [ "pohatu" ];
     };
-    # keeping `enable` on its own line so I can bring in the other
-    # commented-out options easier
-    networkmanager = {
-      enable = false;
-    };
- #     ensureProfiles.profiles = {
- #       Alpha6 = {
- #         connection = {
- #           type = "wifi";
- #           id = "Alpha6";
- #           interface-name = "wlp2s0";
- #           autoconnect = true;
- #         };
- #         ipv4 = (netId); 
- #       };
- #     };
- #   };
   };
 
 
@@ -106,10 +90,57 @@
       AllowUsers = null;
       UseDns = true;
       X11Forwarding = false;
+      PasswordAuthentication = false;
       PermitRootLogin = "prohibit-password";
+      
     };
   };
 
+  # route ssh logs to file to they can be captured
+  # by CrowdSec agents. Journald feature in CrowdSec
+  # is not functional.
+  services.syslog-ng = {
+    enable = true;
+    configHeader = ''
+      @version: 4.10
+      @include "scl.conf"
+    '';
+    extraConfig = ''
+      source s_local {
+          system();
+          internal();
+      };
+      destination ssh { file("/var/log/ssh.log"); };
+      filter f_ssh { program("sshd"); };
+      log { 
+	  source(s_local); 
+	  filter(f_ssh); 
+	  destination(ssh); 
+	  flags(final); 
+      };
+      options {
+          chain_hostnames(off);
+          create_dirs(no);
+          dns_cache(no);
+          flush_lines(0);
+          group("log");
+          keep_hostname(yes);
+          log_fifo_size(10000);
+          perm(0640);
+          stats(freq(0));
+          time_reopen(10);
+          use_dns(no);
+          use_fqdn(no);
+      };
+    '';
+  };
+  
+  services.pcscd.enable = true;
+  
+  security.pam.sshAgentAuth = {
+    enable = true;
+  };
+ 
   # Set your time zone.
   time.timeZone = "America/Denver";
 
@@ -136,6 +167,7 @@
       "networkmanager" 
       "nogroup"
     ];
+    openssh.authorizedKeys.keyFiles = [ "/home/martin/.ssh/authorized_keys" ];
   };
   
   programs = {
@@ -149,6 +181,21 @@
         init.defaultBranch = "main";
       };
     };
+    bash = {
+      shellInit = 
+	''
+	  if [[ $SSH_CONNECTION && $- == *i* ]]
+	  then
+	      	cd ~/kaita/nixos
+		neofetch
+	  fi
+      	'';
+    };
+    ssh.startAgent = true;
+    gnupg.agent = {
+      enable = true;
+      #pinentryPackage = "pinentry-curses";
+    };
   };
 
   # List packages installed in system profile.
@@ -160,6 +207,9 @@
     htop
     neofetch
     jq
+    pass
+    gnupg
+    pinentry-curses
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -197,4 +247,3 @@
   system.stateVersion = "25.05"; # Did you read the comment?
 
 }
-

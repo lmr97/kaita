@@ -42,4 +42,173 @@ sudo ufw allow 8472
 
 (Some of these may be redundant, but I know at least one of these solved the issue.)
 
+## Persmissions issues in generating Ceph PVs
+
+New secrets for the storage class need to be generated. 
+
+1. Delete the secrets (these come from the `ceph-storage-class.yaml` file):
+
+```
+kubectl delete secret rook-csi-cephfs-node
+kubectl delete secret rook-csi-cephfs-provisioner
+```
+
+2. Delete the `rook-cephfs` storage class
+
+```
+kubectl delete -f ceph-storage-class.yaml
+```
+
+3. Recreate the storage class
+
+```
+kubectl create -f ceph-storage-class.yaml
+```
+
+## Jellyfin server shuts down after a set amount of movie playback
+
+The issue is with the cache size, which, in the deployment, is an `EmptyDir` volume with a set size. Simply increase the size in the definition and apply.
+
+
+## Longhorn Manager throwing an error about iscsiadm/open-iscsi not being installed (when it is)
+
+This is an issue with where NixOS places its binaries by default: it places them somewhere under the `/run` directory, not in `/usr/bin`. So simply sym-link the `nsenter` and `iscsiadm` executables to the expected path:
+
+```
+sudo ln -s $(which nsenter)  /usr/bin/nsenter
+sudo ln -s $(which iscsiadm) /usr/bin/iscsiadm
+```
+
+## NixOS nodes drop connection after rebuild
+
+Add 8.8.8.8 to the name servers, rebuild, and then you can remove it. The node needs to be reminded of the DNS lookups, I suppose.
+
+## Longhorn raising "Output: nsenter: failed to execute mount: No such file or directory" on the NixOS nodes
+
+The NixOS systems don't have `mount` on the standard Hierarchical File System path (`/usr/bin`), so it needs to be symlinked.
+
+```
+sudo ln -s /run/current-system/sw/bin/mount /usr/bin/mount
+```
+
+See [https://github.com/longhorn/longhorn/issues/2166#issuecomment-3094699127](this GitHub issue).
+
+
+## Traefik issues with second Jellyfin server
+
+A Jellyfin server has a certain base URL configured in `<JELLYFIN CONFIG DIR>/config/network.xml`, by the option `NetworkConfiguration.BaseURL`. Every sub-request of the main server will be prefixed with this value. So this value has to match the base of the place in the `archie.zapto.org` API where it is supposed to go.
+
+For instance, even if you configured the second server to have `/jf2` for its root in the Traefik reverse proxy, and the Jellyfin server itself is configured with a base URL of `/jellyfin`, then Traefik will return a 404 error. This is because the Jellyfin server root returns 302 (Found), so it will redirect all requests to, in this example, some page like `/jellyfin/web/...`, which may not exist in the reverse proxy, causing the error. 
+
+## Solutions
+
+- Make the `BaseURL` value reflect the reverse proxy's entrypoint
+
+- Make the `BaseURL` value relative (prefix with `.`)
+
+
+## Problems with login hanging on `ssh` (for a NixOS node)
+
+The issue seems to be that the NixOS seems to wipe the files in `~/.ssh` sometimes. But, as long as they're on one NixOS node, they can be successfully be copied into the other and resolve the problem. kopaka and gali have essentially equivalent ones (just change the host name), and there is an additional copy on archie and my main laptop, each at `~/nixos-ssh-bkup`
+
+## CrowdSec not alerting on anything
+
+This is because, due to the way Kubernetes is set up, all requests (especially to Traefik) are sent as the cluster's local IP address, and local IPs are automatically whitelisted. The original IP needs to be included in the HTTP request. So, to configure that, add the following to the `traefik-cfg.yaml` file:
+
+```
+service:
+  spec:
+    externalTrafficPolicy: Local 
+```
+
+This could also be due to the fact that that access logs (HTTP request logs) are note enabled on k3s by default. To enable those, add this to `traefik-cfg.yaml`:
+
+```
+logs:
+  access:
+    enable: true
+    format: common  # could also be `json`
+```
+
+## Getting Crowdsec to recognize the Traefik Remediation Component
+
+After defining the middleware, attach it to the Traefik static config, via the Helm Chart file, `traefik-cfg.yaml`, and running `kubectl apply -f traefik-cfg.yaml`.
+
+Here is the quickstart for the bouncer: https://doc.crowdsec.net/docs/next/appsec/quickstart/traefik
+
+Here is the guide for updating K3s components: https://docs.k3s.io/add-ons/helm#customizing-packaged-components-with-helmchartconfig
+
+## Crowdsec issue: Traefik Bouncer not talking to LAPI
+
+Use a new API key made with `cscli bouncer add <bouncer-name>` for the Middleware resource field `crowdsecLapiKey`. This key must also be used in the Helm chart for the Appsec section, with an env variable named `BOUNCER_KEY_<bouncer-name>`, with a value of the new generated key. This registers the bouncer with the Console, so alerts and actions can be seen.
+
+## Crowdsec issue: sudden failure to parse Traefik logs
+
+All these must be true for parsing to succeed:
+
+- Access logs must be enabled
+
+- Original IP addresses must be forwarded
+
+- Logs must be JSON-formatted
+
+## Crowdsec issue: 403 from valid enroll token
+
+The login requests are rate-limited to 20 requests per 50 minutes. This can be exceeded by excessive `helm upgrade`s and container restarts. 
+
+See [this link](https://docs.crowdsec.net/u/troubleshooting/capi_403/) for more information.
+
+## Crowdsec Issue: Bouncer not giving errors, appearing in console, but nor functioning
+
+Verify the API key in the bouncer middleware, recreate the middleware, then restart Traefik. Any changes to the middleware require a restart of the Traefik pod.
+
+## Crowdsec Issue: logs seemingly suddenly not being parsed (Crowdsec Console warning)
+
+### What I checked
+
+- Traefik pod health (good)
+- Crowdsec pods (no errors)
+- That the access logs were both being taken and in JSON format (they were)
+- Traefik config (unchanged since when working). 
+- Checked access logs again. Noted that the testing request came from a 10.0.0.0/8 address, which is whitelisted in the config (K8s cluster IP range)
+- Checked the node that Traefik was running on: **It was on a worker node, not control node**
+
+### Root cause
+
+Traefik was running on worker node, not control node. All traffic was being redirected to it from the control node, so while the logs were actually being parsed, testing request got whitelisted.
+
+*Alternatively*, updating the K8s configuration directly may have wiped the configuration of Traefik itself, taking out its access logs.
+
+### Solution
+
+Edit the Traefik deployment configuration (using `kubectl edit`, since it was bundled with the k3s distribution) to give the pod a node affinity for the the control node.
+
+...and re-apply the file that configures Traefik itself (`./traefik-cfg.yaml`), since the former editing seems to have overwritten that config.
+
+## Crowdsec Issue: Bouncer not functioning after node reboot or k3s restart
+
+Apply the `traefik-cfg.yaml` file again. I symlinked the file into `/var/lib/rancher/k3s/server/manifests`, so that should be applied automatically now.
+
+## Cloudflare Tunnel to Traefik returning 404
+
+This seems to happen when the entrypoint for the routing is not set via annotation in an `IngressRoute`. That is, when you have:
+
+```
+...
+spec:
+  router:
+    entrypoints:
+      - web
+...
+```
+
+it will not serve on port 80 like you expect. However, when you add this to your annotations:
+
+```
+traefik.ingress.kubernetes.io/router.entrypoints: web
+```
+
+it works like a charm.
+
+As a side note: the Service URL for Traefik on the server is `http://traefik.kube-system.svc.cluster.local:80`.
 

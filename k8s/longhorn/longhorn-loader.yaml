@@ -1,0 +1,51 @@
+# this exists solely to load data into the CephFS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longhorn-loader 
+  namespace: archie
+  labels:
+    app: longhorn-loader
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: longhorn-loader 
+  template:
+    metadata:
+      labels:
+        app: longhorn-loader
+    spec:
+      containers:
+      - name: loader 
+        image: lmr97/jellyfin-chown-pl:1.1.0
+        imagePullPolicy: Always 
+        volumeMounts:
+        #- name: jf-media
+        #  mountPath: /media
+        - name: jf-cfg
+          mountPath: /config
+        #- name: db-data
+        #  mountPath: /db
+
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-longhorn
+          readOnly: false
+      - name: jf-cfg
+        persistentVolumeClaim:
+          claimName: jellyfin-cfg-longhorn
+          readOnly: false
+      #- name: db-data
+      #  persistentVolumeClaim:
+      #    claimName: archie-db-pvc
+      #affinity:
+      #  nodeAffinity:
+      #    requiredDuringSchedulingIgnoredDuringExecution:
+      #      nodeSelectorTerms:
+      #      - matchExpressions:
+      #        - key: kubernetes.io/hostname
+      #          operator: In
+      #          values:
+      #          - archie 

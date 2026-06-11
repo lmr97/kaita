@@ -1,0 +1,17 @@
+# From: https://cert-manager.io/docs/tutorials/getting-started-with-cert-manager-on-google-kubernetes-engine-using-lets-encrypt-for-ingress-ssl/#7-create-an-issuer-for-lets-encrypt-staging
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-issuer
+  namespace: sans-mercy
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: sabrina@sansmercy.com
+    profile: tlsserver
+    privateKeySecretRef:
+      name: letsencrypt-pk-sm  # automatically generated
+    solvers:
+    - http01:
+        ingress:
+          class: traefik

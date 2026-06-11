@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: ceph-loader 
   namespace: archie
+  labels:
+    app: ceph-loader
 spec:
   replicas: 1 
   selector:
@@ -16,20 +18,23 @@ spec:
     spec:
       containers:
       - name: loader 
-        image: alpine
+        image: debian
+        imagePullPolicy: IfNotPresent
+        command: [ "sleep", "infinity" ]
         volumeMounts:
         - name: jf-fs
-          mountPath: /mnt
+          mountPath: /jf-vol
       volumes:
       - name: jf-fs
         persistentVolumeClaim:
           claimName: jellyfin-ceph-pvc
+          readOnly: false
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-              - matchExpressions:
-                - key: kubernetes.io/hostname
-                  operator: In
-                  values:
-                    - archie
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - archie

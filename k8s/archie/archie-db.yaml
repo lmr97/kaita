@@ -5,7 +5,7 @@ metadata:
   namespace: archie
 spec:
   replicas: 1
-  minReadySeconds: 60
+  #minReadySeconds: 60
   selector:
     matchLabels:
       app: archie-db
@@ -14,6 +14,15 @@ spec:
       labels:
         app: archie-db 
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - archie
       containers:
         - name: archie-db 
           image: mysql:9.2
@@ -42,10 +51,11 @@ spec:
               mountPath: /var/lib/mysql
       volumes:
         - name: db-vol
-          #persistentVolumeClaim:
-          #  claimName: archie-db-pvc
-          emptyDir:
-            sizeLimit: 1Gi
+          persistentVolumeClaim:
+            claimName: archie-db-pvc
+          #emptyDir:
+          #  sizeLimit: 1Gi
+
 ---
 
 apiVersion: v1
@@ -60,4 +70,6 @@ spec:
   ports:
   - protocol: TCP
     port: 3306
+
+
 

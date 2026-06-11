@@ -1,0 +1,18 @@
+# a note for self, to remember the highly verbose
+# method of assigning a pod to a node in k8s
+#
+# NOTE: the `spec` is `spec.template.spec` not 
+# the top-level one.
+
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - archie

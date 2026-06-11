@@ -3,30 +3,25 @@ kind: IngressRoute
 metadata:
   name: main-rev-prox
   namespace: archie
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-issuer"
+    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
-  entryPoints:
-    - websecure
-  tls:
-    secretName: archie-tls
+  #tls:
+  #  secretName: archie-tls-auto
   routes:
-  #- kind: Rule
-  #  match: Host(`archie.zapto.org`) && PathPrefix(`/jf-ceph`)
-  #  services:
-  #  - kind: Service 
-  #    name: jellyfin-ceph
-  #    namespace: archie
-  #    port: 8097
   - kind: Rule
-    match: Host(`archie.zapto.org`) && PathPrefix(`/jellyfin`)
+    match: Host(`jellyfin.lmrsvr.net`)
     services:
     - kind: Service 
-      name: jellyfin
+      name: jellyfin-longhorn
       namespace: archie
-      port: 8096
+      port: 1997
   - kind: Rule
-    match: Host(`archie.zapto.org`) #&& PathPrefix(`/`)
+    match: Host(`lmrsvr.net`)
     services:
     - kind: Service
       name: archie-svr
       namespace: archie
       port: 4949
+
