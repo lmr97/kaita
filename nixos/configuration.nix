@@ -44,6 +44,14 @@ in
     };
     hostName = thisMachine.hostName;
     interfaces = {
+      eno1 = {
+        ipv4.addresses = [
+          {
+            address = thisMachine.ipAddress;
+           prefixLength = 24;
+          }
+        ];
+      };
       enp0s31f6 = {
         ipv4.addresses = [
           {
