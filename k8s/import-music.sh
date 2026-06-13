@@ -30,36 +30,27 @@ function progress-bar() {
 
 echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] Importing new files from MacBook to Archie...\n"
 
-IMPORT_TIME=$(date -Im)
+IMPORT_DATE=$(date -I)
 rsync \
 	--recursive \
 	--progress \
 	'macbook:/Users/martinreid/Music/music-downloads/Music/' \
-	~/music-imports/${IMPORT_TIME}/
+	~/music-imports/${IMPORT_DATE}/
 
 
 
 echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] Adding new music to Jellyfin library..."
-# kubectl cp isn't working with directories, so instead of the following:
-#kubectl -n archie cp ~/music-imports/ ${JFPOD:4}:/media/Music
-# we've gotta do it the old-fashioned way
-tar -cf - \
-	--verbose \
-	-C /home/martin \
-	"./music-imports/${IMPORT_TIME}" \
-| kubectl -n archie exec -i $JFPOD -- \
-	tar -xf - \
-		--skip-old-files \
-		--verbose \
-		--strip-components=2 \
-		-C /media/Music
-# --strip-components=N removes the enclosing directories to N levels
+kubectl -n archie cp ~/music-imports/${IMPORT_DATE} $JFPOD:/media/Music/
 
+# extract contents of import folder into parent directory
+kubectl -n archie exec -n archie -t $JFPOD -- \
+	cd /media/Music; \
+	mv ${IMPORT_DATE}/* .; \
+	rm ${IMPORT_DATE}
 
 
 echo -en "[${ANSI_GREEN}INFO${ANSI_RESET}] "
 jellyroller scan-library $JF_MUSIC_LIB_ID new-updated
-
 
 
 PROGRESS=$(get-progress)
