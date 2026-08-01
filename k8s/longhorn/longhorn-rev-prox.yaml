@@ -1,0 +1,22 @@
+kind: IngressRoute
+apiVersion: traefik.io/v1alpha1
+metadata:
+  name: longhorn-frontend
+  namespace: longhorn-system
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Path(`/lh-dashboard`) #Host(`longhorn.lmrsvr.net`)
+      middlewares:
+      - name: longhorn-ui-auth
+        namespace: longhorn-system
+      - name: strip-lh-prefix
+        namespace: longhorn-system
+      services:
+      - name: longhorn-frontend
+        namespace: longhorn-system
+        passHostHeader: true
+        port: 80
+

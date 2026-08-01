@@ -1,0 +1,33 @@
+{
+    "apiVersion": "gateway.networking.k8s.io/v1",
+    "kind": "HTTPRoute",
+    "metadata": {
+        "name": "archie-route",
+        "namespace": "archie"
+    },
+    "spec": {
+        "parentRefs": [
+            {
+                "name": "traefik-gateway",
+                "kind": "Gateway",
+                "namespace": "kube-system",
+                "sectionName": "web"
+            }
+        ],
+        "hostnames": [
+            "lmsvr.net"
+        ],
+        "rules": [
+            {
+                "backendRefs": [
+                    {
+                        "name": "archie-svr",
+                        "kind": "Service",
+                        "port": 4949,
+                        "namespace": "archie"
+                    }
+                ]
+            }
+        ]
+    }
+}

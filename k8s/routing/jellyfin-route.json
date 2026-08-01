@@ -1,0 +1,30 @@
+{
+	"apiVersion": "gateway.networking.k8s.io/v1",
+	"kind": "HTTPRoute",
+	"metadata": {
+		"name": "jellyfin-route",
+		"namespace": "archie"
+	},
+	"spec": {
+		"parentRefs": [
+			{
+				"name": "traefik-gateway",
+				"namespace": "kube-system"
+			}
+		],
+		"hostnames": [
+			"jellyfin.lmrsvr.net"
+    ],
+        "rules": [
+            {
+                "backendRefs": [
+                    {
+                        "name": "jellyfin-longhorn",
+                        "namespace": "archie",
+                        "port": 1997
+                    }
+                ]
+            }
+        ]
+    }
+}

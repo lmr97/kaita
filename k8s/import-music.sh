@@ -34,19 +34,24 @@ IMPORT_DATE=$(date -I)
 rsync \
 	--recursive \
 	--progress \
+	--exclude ".DS_Store" \
+	--exclude "*/.DS_Store" \
 	'macbook:/Users/martinreid/Music/music-downloads/Music/' \
 	~/music-imports/${IMPORT_DATE}/
 
 
 
 echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] Adding new music to Jellyfin library..."
-kubectl -n archie cp ~/music-imports/${IMPORT_DATE} $JFPOD:/media/Music/
+
+tar -cf - -C ~/music-imports/ $IMPORT_DATE \
+	| kubectl exec -i -n archie $JFPOD -- \
+		tar -xf - -C /media/Music/
+# buggy, don't use
+# kubectl -n archie cp ~/music-imports/${IMPORT_DATE} $JFPOD:/media/Music/
 
 # extract contents of import folder into parent directory
-kubectl -n archie exec -n archie -t $JFPOD -- \
-	cd /media/Music; \
-	mv ${IMPORT_DATE}/* .; \
-	rm ${IMPORT_DATE}
+kubectl -n archie exec -it $JFPOD -- bash -c "cd /media/Music; cp -r ./${IMPORT_DATE}/* ."
+kubectl -n archie exec -it $JFPOD -- bash -c "rm -r /media/Music/${IMPORT_DATE}"
 
 
 echo -en "[${ANSI_GREEN}INFO${ANSI_RESET}] "

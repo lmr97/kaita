@@ -5,6 +5,13 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    gateway:
+      enabled: true
+
+    providers:
+      kubernetesGateway:
+        enabled: true
+    
     service:
       spec:
         externalTrafficPolicy: Local 

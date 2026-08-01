@@ -70,12 +70,12 @@ spec:
           - containerPort: 4949
 
       # Letterboxd web app
-      - name: lb-app
-        image: lmr97/lb-web-app:latest
-        imagePullPolicy: Always
-        env:
-          - name: PY_DEBUG
-            value: "1"
+      #- name: lb-app
+      #  image: lmr97/lb-web-app:latest
+      #  imagePullPolicy: Always
+      #  env:
+      #    - name: PY_DEBUG
+      #      value: "1"
 
 ---
 
