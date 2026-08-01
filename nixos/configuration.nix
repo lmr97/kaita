@@ -196,7 +196,7 @@ in
 	  if [[ $SSH_CONNECTION && $- == *i* ]]
 	  then
 	      	cd ~/kaita/nixos
-		neofetch
+		fastfetch
 	  fi
       	'';
     };
@@ -214,7 +214,7 @@ in
     wget
     curl
     htop
-    neofetch
+    fastfetch
     jq
     pass
     gnupg
