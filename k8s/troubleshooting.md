@@ -212,3 +212,16 @@ it works like a charm.
 
 As a side note: the Service URL for Traefik on the server is `http://traefik.kube-system.svc.cluster.local:80`.
 
+## Longhorn volumes stuck in an attach/detach cycle (on pohatu)
+
+### Root cause
+
+There is a difference in the way `iscsi` operates on the Dell (pohatu) vs the ThinkCentres: the Dell's hardware ends up causing a loopback instead of proper network access, whereas the ThinkCentres don't.
+
+### Solution
+
+1. Stop k3s on the Dell
+2. Take out the `discoverPortal` option in `services.openiscsi` section of the NixOS configuration
+3. Clear out `iscsi`'s existing configurations: `sudo iscsiadm -m node -o delete`
+4. Rebuild the NixOS config (this will also start k3s up again)
+
