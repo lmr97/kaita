@@ -19,7 +19,7 @@ spec:
     - web
   routes:
     - kind: Rule
-      match: Path(`/lh-dashboard`) && Host(`archie`)
+      match: Host(`archie`)
       middlewares:
       - name: longhorn-ui-auth
         namespace: longhorn-system

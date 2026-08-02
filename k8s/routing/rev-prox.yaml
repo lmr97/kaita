@@ -16,13 +16,13 @@ spec:
   #tls:
   #  secretName: archie-tls-auto
   routes:
-    - kind: Rule
-      match: Host(`archie`)
-      services:
-        - kind: Service
-          name: echo-svr
-          namespace: archie
-          port: 8080
+    #- kind: Rule
+    #  match: Host(`archie`)
+    #  services:
+    #    - kind: Service
+    #      name: echo-svr
+    #      namespace: archie
+    #      port: 8080
 
     - kind: Rule
       match: Host(`jellyfin.lmrsvr.net`)
