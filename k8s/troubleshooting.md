@@ -225,3 +225,13 @@ There is a difference in the way `iscsi` operates on the Dell (pohatu) vs the Th
 3. Clear out `iscsi`'s existing configurations: `sudo iscsiadm -m node -o delete`
 4. Rebuild the NixOS config (this will also start k3s up again)
 
+
+## Crowdsec issue: Bouncer not banning test requests, and shows no errors at any level
+
+### Root cause
+The bouncer's `crowdsecMode` option is set to `stream`, which refreshes a local cache of decisions pulled from the API every 60 seconds. When the TTL for the decision is set to 1m, then the cache is only up-to-date for part of the minute during which the decision is active, leading to the ban only being enforced when the request is made both before the decision expires, and after the cache refreshes.
+
+### Solution
+
+Set the decision TTL for 2-3 minutes instead.
+

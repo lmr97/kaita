@@ -7,11 +7,9 @@ spec:
   valuesContent: |-
     gateway:
       enabled: true
-
     providers:
       kubernetesGateway:
         enabled: true
-    
     service:
       spec:
         externalTrafficPolicy: Local 
@@ -26,7 +24,6 @@ spec:
           defaultMode: keep
           names:
             ServiceName: keep
-
     ports:
       web:
         #redirections:
@@ -38,12 +35,12 @@ spec:
           trustedIPs:
             - 10.0.0.0/8
             - 192.168.0.0/16 
-        middlewares: 
-          - crowdsec-main-crowdsec-bouncer
-      websecure:
-        middlewares: 
-          - crowdsec-main-crowdsec-bouncer
-
+      # middleware needs to be registered through CLI args below, ignored if here
+      #  middlewares: 
+      #    - crowdsec-main-crowdsec-bouncer@kubernetescrd
+      #websecure:
+      #  middlewares: 
+      #    - crowdsec-main-crowdsec-bouncer@kubernetescrd
     # Proxy Protocol needs “enabled”, not only trustedIPs
     additionalArguments:
       - --accesslog=true  # double-check logging stays on even if values drift
@@ -52,9 +49,10 @@ spec:
       - --entrypoints.websecure.proxyProtocol=true  # enable Proxy Protocol on the HTTPS entrypoint
       - --entrypoints.web.proxyProtocol.trustedIPs=10.0.0.0/8,192.168.0.0/16  # trust proxy headers from your internal ranges
       - --entrypoints.websecure.proxyProtocol.trustedIPs=10.0.0.0/8,192.168.0.0/16  # same trust list for HTTPS
+      - --entrypoints.websecure.http.middlewares=crowdsec-main-crowdsec-bouncer@kubernetescrd
+      - --entrypoints.web.http.middlewares=crowdsec-main-crowdsec-bouncer@kubernetescrd
       - --providers.kubernetesingress  # watch standard Ingress resources
       - --providers.kubernetescrd  # watch Traefik CRD resources
-
     experimental:
       plugins:
         crowdsec-bouncer:

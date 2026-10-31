@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: main-crowdsec-bouncer
-  #namespace: crowdsec
+  namespace: crowdsec
 spec:
   plugin:
     crowdsec-bouncer:
@@ -11,7 +11,7 @@ spec:
       crowdsecLapiKey: "$CROWDSEC_BOUNCER_KEY"  
       enabled: true
       logLevel: DEBUG
-      crowdsecMode: none
+      crowdsecMode: stream
       crowdsecLapiScheme: http
       # adding the namespace (the .crowdsec) was the missing piece!
       crowdsecLapiHost: crowdsec-service.crowdsec:8080

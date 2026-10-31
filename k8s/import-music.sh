@@ -3,8 +3,8 @@ set -e
 
 function get-progress() {
 	local prog=$(\
-		curl -s -H "Authorization: MediaBrowser Token=${JF_API_KEY}" \
-		https://archie.zapto.org/jf-lh/Library/VirtualFolders \
+		curl --silent -H "Authorization: MediaBrowser Token=${JF_API_KEY}" \
+		https://jellyfin.lmrsvr.net/Library/VirtualFolders \
 		| jq '.[] | select(.Name == "Music") | .RefreshProgress' \
 	)
 	echo $prog
@@ -43,15 +43,11 @@ rsync \
 
 echo -e "\n[${ANSI_GREEN}INFO${ANSI_RESET}] Adding new music to Jellyfin library..."
 
-tar -cf - -C ~/music-imports/ $IMPORT_DATE \
-	| kubectl exec -i -n archie $JFPOD -- \
-		tar -xf - -C /media/Music/
-# buggy, don't use
-# kubectl -n archie cp ~/music-imports/${IMPORT_DATE} $JFPOD:/media/Music/
+kubectl -n archie cp ~/music-imports/${IMPORT_DATE} $JFPOD:/media/Music/
 
 # extract contents of import folder into parent directory
-kubectl -n archie exec -it $JFPOD -- bash -c "cd /media/Music; cp -r ./${IMPORT_DATE}/* ."
-kubectl -n archie exec -it $JFPOD -- bash -c "rm -r /media/Music/${IMPORT_DATE}"
+#kubectl -n archie exec -it $JFPOD -- bash -c "cd /media/Music; cp -r ./${IMPORT_DATE}/* ."
+#kubectl -n archie exec -it $JFPOD -- bash -c "rm -r /media/Music/${IMPORT_DATE}"
 
 
 echo -en "[${ANSI_GREEN}INFO${ANSI_RESET}] "

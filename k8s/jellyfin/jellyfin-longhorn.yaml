@@ -17,9 +17,7 @@ spec:
     spec:
       containers:
       - name: jellyfin
-        # tag 2025090805 (latest at time of writing)
-        # stack-overflows on library scan
-        image: jellyfin/jellyfin:10.11.6
+        image: jellyfin/jellyfin:12.0  # last stable: 10.11.6
         volumeMounts:
         - name: jf-config
           mountPath: /config
