@@ -32,6 +32,9 @@ in
         };
       }
     ];
+    
+    kernelModules = [ "iscsi_tcp" "libiscsi" ];
+
     supportedFilesystems = [ "nfs" ];
     blacklistedKernelModules = [ "algif_aead" ];
   };
