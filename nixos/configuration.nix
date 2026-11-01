@@ -43,6 +43,7 @@ in
       enable = true;
     };
     hostName = thisMachine.hostName;
+    nftables.enable = true;
     interfaces = {
       eno1 = {
         ipv4.addresses = [
@@ -80,16 +81,25 @@ in
       ];
       allowedUDPPorts = [ 
 	8472  # Flannel
+	config.services.tailscale.port
       ];
     };
     hosts = {
       "192.168.0.111" = [ "archie" ];
-      "192.168.0.113" = [ "gali" ];  # temporarily ...115 due to other dev getting ...113
+      "192.168.0.113" = [ "gali" ];
       "192.168.0.114" = [ "pohatu" ];
     };
   };
 
+  # Tailscale setup (plus the allowed UDP port in the firewall config)
+  services.tailscale = {
+    enable = true;
+  };
 
+  networking.firewall.trustedInterfaces = [ config.services.tailscale.interfaceName ];
+  systemd.services.tailscaled.serviceConfig.Environment = [ 
+    "TS_DEBUG_FIREWALL_MODE=nftables" 
+  ];
   
   # SSH configuration
   services.openssh = {
