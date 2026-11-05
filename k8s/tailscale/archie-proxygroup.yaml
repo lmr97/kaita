@@ -1,0 +1,11 @@
+# original version taken straight from:
+# https://tailscale.com/docs/kubernetes-operator/ingress/expose-workload-to-tailnet-l7
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyGroup
+metadata:
+  name: ingress-proxies
+  namespace: archie
+spec:
+  type: ingress
+  replicas: 4
+

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin-ingress
+  namespace: archie
+  # don't use the ProxyGroup -- requests hang indefinitely, 
+  # and the Tailscale Operator logs this error:
+  # "failed to provision: failed to create or get API key secret: input does not match format"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - jellyfin
+  rules:
+  - host: jellyfin
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jellyfin-longhorn
+            port:
+              number: 1997
+
