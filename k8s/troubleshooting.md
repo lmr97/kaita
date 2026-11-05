@@ -235,3 +235,26 @@ The bouncer's `crowdsecMode` option is set to `stream`, which refreshes a local 
 
 Set the decision TTL for 2-3 minutes instead.
 
+
+## Wanting to publish website to the public internet again
+
+The `cloudflared` DaemonSet was deployed on this cluster to expose the reverse proxy to the internet, but I eventually concluded that that was too much risk for only one user currently, and only a handful of users at any foreseaable point in the future. A Tailscale-based mesh network was set up instead (note: Tailscale was installed on the hardware, not in K8s). But, if you want the cluster back on the internet again, simply redeploy `cloudflared` by running the following command:
+
+```bash
+kubectl apply -f cloudflared.yaml
+```
+
+The definition and secrets and everything should all be in place for this to go live immediately (the pods start up very quickly). If you need/want a new encryption key, go to the Cloudflare Tunnels page on your Cloudflare Dash, select the "kaita-main" tunnel, and then click the "Rotate Token" button on the right-side pannel. Take that value, and update the Kubernetes secret accordingly.
+
+
+## Requests to Jellyfin on Tailscale hang
+
+### Root cause
+
+This was when the proxy was configured as a part of `ProxyGroup` (an HA configuration). This has been an unsuccessful deployment for some users.
+
+### Solution
+
+I simply dropped down to the stand-alone deployment (one proxy pod for the `Ingress`) and the server was able to get and respond to requests just fine.
+
+
