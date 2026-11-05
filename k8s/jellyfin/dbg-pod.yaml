@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jf-dbg
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: jf-dbg
+      tier: longhorn
+  template:
+    metadata:
+      labels:
+        app: jf-dbg
+        tier: longhorn
+    spec:
+      containers:
+      - name: dbg-ctnr
+        image: lmr97/favutils:latest
+        volumeMounts:
+        - name: jf-config
+          mountPath: /config
+        - name: jf-media
+          mountPath: /media
+        - name: cache-volume
+          mountPath: /cache
+        #ports:
+        #- containerPort: 8096
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-longhorn
+      - name: jf-config
+        persistentVolumeClaim:
+          claimName: jellyfin-cfg-longhorn
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 50Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - pohatu 
+

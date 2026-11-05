@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jf-lh-prev
+  namespace: archie
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: jf-lh-prev
+      tier: longhorn
+  template:
+    metadata:
+      labels:
+        app: jf-lh-prev
+        tier: longhorn
+    spec:
+      containers:
+      - name: jellyfin
+        image: jellyfin/jellyfin:10.11.6  # last stable: 10.11.6
+        volumeMounts:
+        - name: jf-config
+          mountPath: /config
+        - name: jf-media
+          mountPath: /media
+        - name: cache-volume
+          mountPath: /cache
+        ports:
+        - containerPort: 8096
+      volumes:
+      - name: jf-media
+        persistentVolumeClaim:
+          claimName: jellyfin-media-longhorn
+      - name: jf-config
+        persistentVolumeClaim:
+          claimName: jf-prev-cfg
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 50Gi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - pohatu 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jf-lh-prev
+  namespace: archie 
+spec:
+  selector:
+    app: jf-lh-prev
+    tier: longhorn
+  ports:
+  - protocol: TCP
+    port: 1998 
+    targetPort: 8096
+
+---
+
+# PVC for the config/metadata volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jf-prev-cfg
+  namespace: archie
+spec:
+  storageClassName: longhorn
+  volumeName: jf-prev-cfg-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jf-prev-cfg-pv
+  namespace: archie
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: longhorn
+  csi:
+    driver: driver.longhorn.io
+    fsType: ext4
+    volumeHandle: system-backup-jf-cfg
